@@ -3,14 +3,14 @@
 
 // Configuration definitions.
 
-//#define CONFIG_APPNAME  "QEMU"
-//#define CONFIG_CPUNAME8 "QEMUCPU "
-//#define CONFIG_APPNAME6 "QEMU  "
-//#define CONFIG_APPNAME4 "QEMU"
-#define CONFIG_APPNAME  "Bochs"
-#define CONFIG_CPUNAME8 "BOCHSCPU"
-#define CONFIG_APPNAME6 "BOCHS "
-#define CONFIG_APPNAME4 "BXPC"
+#define CONFIG_APPNAME  "QEMU"
+#define CONFIG_CPUNAME8 "QEMUCPU "
+#define CONFIG_APPNAME6 "QEMU  "
+#define CONFIG_APPNAME4 "QEMU"
+//#define CONFIG_APPNAME  "Bochs"
+//#define CONFIG_CPUNAME8 "BOCHSCPU"
+//#define CONFIG_APPNAME6 "BOCHS "
+//#define CONFIG_APPNAME4 "BXPC"
 
 // Configure as a coreboot payload.
 #define CONFIG_COREBOOT 0
@@ -124,7 +124,7 @@
 // Maximum number of map entries in the e820 map
 #define CONFIG_MAX_E820 32
 // Space to reserve in f-segment for dynamic allocations
-#define CONFIG_MAX_BIOSTABLE 2048
+#define CONFIG_MAX_BIOSTABLE (4*2048)
 // Space to reserve in high-memory for tables
 #define CONFIG_MAX_HIGHTABLE (64*1024)
 // Largest supported externaly facing drive id
