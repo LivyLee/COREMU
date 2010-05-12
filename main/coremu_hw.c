@@ -1,0 +1,110 @@
+/* @(#)coremu_hw.c
+
+   common states for hw emulation in COREMU
+*/
+
+#define DEBUG_COREMU     0
+#define VERBOSE_COREMU   1
+#define _GNU_SOURCE
+
+#include "coremu_utils.h"
+#include "coremu_hw.h"
+#include "coremu_atomic.h"
+
+#if IOREQ_LOCK_FREE
+
+#include <coremu_hw_lockfree.h>
+
+queue_t *Q;
+
+void coremu_ioreq_ring_init(int smp_cpus)
+{
+    Q = new_queue();
+    assert(Q != NULL);
+
+    cm_print(">>> Use MS-nonblocking queue <<<");
+}
+
+#endif  /* IOREQ_LOCK_FREE */
+
+static volatile int ioreq_exit = 0;    /* flag to exit the ioreq wait */
+static hw_thr_t hw_thrid;
+static void register_hw_thr(void);
+
+/*  === common tools === */
+void coremu_init_hw(int smp_cpus)
+{
+    register_hw_thr();
+
+#if IOREQ_SYNC
+    /* do nothing */
+#elif IOREQ_LOCK_FREE
+    /* Init the sync IO ring */
+    cm_assert((smp_cpus > 0),
+              "[fatal] NO cpus?!");
+    coremu_ioreq_ring_init(smp_cpus);
+#else
+    assert(0);
+#endif
+}
+
+void coremu_signal_hw_thr(int signo)
+{
+    pthread_kill(hw_thrid, signo);
+}
+
+hw_thr_t coremu_get_hw_id()
+{
+    return hw_thrid;
+}
+
+int coremu_hw_thr_p()
+{
+    return ((hw_thr_t) pthread_self()
+            == hw_thrid);
+}
+
+void coremu_assert_hw_thr(const char *msg)
+{
+    hw_thr_t cur = (hw_thr_t) pthread_self();
+
+    if(hw_thrid != cur) {
+        if(msg != NULL)
+            printf("[fatal] %s\n", msg);
+        assert(0);
+    }
+}
+
+void coremu_assert_not_hw_thr(const char *msg)
+{
+    hw_thr_t cur = (hw_thr_t) pthread_self();
+
+    if(hw_thrid == cur) {
+        if(msg != NULL)
+            printf("[fatal] %s\n", msg);
+        assert(0);
+    }
+}
+
+/* === ioreq_exit flag manipulation === */
+int coremu_ioreq_exit_p()
+{
+    return ioreq_exit;
+}
+
+/* -- add one exit request -- */
+void coremu_inc_ioreq_exit()
+{
+    atomic_inc32((uint32_t *) &ioreq_exit);
+}
+
+/* -- del one exit request -- */
+void coremu_dec_ioreq_exit()
+{
+    atomic_dec32((uint32_t *) &ioreq_exit);
+}
+
+static void register_hw_thr()
+{
+    hw_thrid = (hw_thr_t) pthread_self();
+}

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: configure <path to patched qemu source code> <target>"
+}
+
+if [[ $# != 2 ]]; then
+    usage
+    exit 1
+fi
+
+target=$2
+qemusrc=`cd $1; pwd`
+coremuroot=`pwd`
+
+mkdir -p obj/qemu
+mkdir -p bin/qemu
+
+sed -i -e "s,^QEMUSRC :=.*,QEMUSRC := ${qemusrc},g" config.mk
+sed -i -e "s,^TARGET :=.*,TARGET := ${target},g" config.mk
+
+echo '***** [QEMU-git for COREMU build] *****'
+
+cd ${coremuroot}/obj/qemu
+${qemusrc}/configure --prefix=${coremuroot}/bin/qemu \
+    --disable-kvm \
+    --disable-docs \
+    --extra-cflags="-I${coremuroot}/incl -I${coremuroot}/obj/qemu \
+            -I${coremuroot}/obj/qemu/${target}-softmmu" \
+    --target-list="${target}-softmmu" \
+    --disable-werror
+
+make config-host.h
+cd ${target}-softmmu
+make config-target.h
+
