@@ -18,6 +18,8 @@ mkdir -p bin/qemu
 
 sed -i -e "s,^QEMUSRC :=.*,QEMUSRC := ${qemusrc},g" config.mk
 sed -i -e "s,^TARGET :=.*,TARGET := ${target},g" config.mk
+# Modify qemu's makefile to link with coremu
+sed -i -e "s,^COREMU_LIB =.*,COREMU_LIB = ${coremuroot}/obj/libcoremu.a," ${qemusrc}/Makefile.target
 
 echo '***** [QEMU-git for COREMU build] *****'
 
