@@ -111,7 +111,7 @@ TAILQ_HEAD(cores_head, cm_core_s);
 typedef struct cores_head cores_head_t;
 
 /* processor type */
-typedef struct cm_core_s
+typedef struct CMCore
 {
     uint32_t serial;                     /* number start from 0 */
     core_t coreid;                       /* ID of the core */
@@ -138,7 +138,7 @@ typedef struct cm_core_s
     cm_profile_t core_profile;           /* CPU profile */
     cm_timer_debug_t debug_info;         /* Used for timer debug */
     
-} cm_core_t;
+} CMCore;
 
 typedef struct cm_ioreq_s
 {

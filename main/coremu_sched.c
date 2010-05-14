@@ -92,7 +92,7 @@ static void topology_bind_core()
 {
     topo_obj_t obj;
     topo_cpuset_t cpuset;   
-    cm_core_t *self = coremu_get_self();
+    CMCore *self = coremu_get_self();
     int index;
 
 #if CM_BIND_SOCKET

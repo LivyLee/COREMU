@@ -31,7 +31,7 @@ int cm_intr_delay_step;
 
 
 /* Signal-unsafe. block the signal in the lock free function */
-void coremu_put_intr(void *e, size_t size, cm_core_t *core)
+void coremu_put_intr(void *e, size_t size, CMCore *core)
 {
     cm_intr_t *cm_intr;
     cm_intr = qemu_mallocz(sizeof(cm_intr_t));
@@ -60,7 +60,7 @@ void coremu_put_intr(void *e, size_t size, cm_core_t *core)
 }
 
 /* Signal-unsafe. block the signal in the lock free function */
-void *coremu_get_intr(cm_core_t *core)
+void *coremu_get_intr(CMCore *core)
 {
     cm_intr_t *cm_intr;
     void *opaque;
@@ -95,48 +95,14 @@ void *coremu_get_intr(cm_core_t *core)
     return opaque;
 }
 
-uint64_t coremu_intr_get_size(cm_core_t *core)
+uint64_t coremu_intr_get_size(CMCore *core)
 {
-#if INTR_LOCK_FREE
     return ms_queue_get_size(core->intr_queue);
-#elif INTR_LOCK
-    return core->intr_count;
-#endif
 }
 
-int coremu_intr_p(cm_core_t *core)
+int coremu_intr_p(CMCore *core)
 {
     return coremu_intr_get_size(core);
-}
-
-void coremu_prepare_intr(qemu_intr_t *intr,
-                         int source, int level,
-                         int mask, int vector_num,
-                         int triger_mode, int deliver_mode, int target_id)
-{
-    intr->source = source;
-    intr->level  = level;
-    intr->mask   = mask;
-    intr->vector_num = vector_num;
-    intr->triger_mode = triger_mode;
-    intr->deliver_mode = deliver_mode;
-    intr->target_id = target_id;
-    return;
-}
-
-void coremu_prepare_tbinval_intr(qemu_intr_t *intr,
-                                 int source,
-                                 target_phys_addr_t start,
-                                 target_phys_addr_t end,
-                                 int len, int is_cpu_write_access,
-                                 uint32_t *tb_invalidate_ack)
-{
-    intr->source = source;
-    intr->addr_range.start = start;
-    intr->addr_range.end = end;
-    intr->addr_range.len = len;
-    intr->addr_range.is_cpu_write_access = is_cpu_write_access;
-    intr->tb_invalidate_ack_addr = tb_invalidate_ack;
 }
 
 /**
@@ -145,7 +111,7 @@ void coremu_prepare_tbinval_intr(qemu_intr_t *intr,
  * But this mechanism seems to be wonderful when number of emulated
  * cores is more than 128 (test enviroment R900)
  */
-void coremu_notify_intr(void *e, size_t size, cm_core_t *core)
+void coremu_notify_intr(void *e, CMCore *core)
 {
     uint64_t pending_intr;
     
@@ -155,7 +121,7 @@ void coremu_notify_intr(void *e, size_t size, cm_core_t *core)
         if(coremu_hw_thr_p()) {
             atomic_inc64(&hw_profile.intr_send[intr->source]);
         } else {
-            cm_core_t *self = coremu_get_self();
+            CMCore *self = coremu_get_self();
             assert(self != NULL);
             atomic_inc64(&self->core_profile.intr_send[intr->source]);
         }
@@ -205,7 +171,7 @@ void coremu_broadcast_intr(void *e, size_t size)
        Currently solve this problem by duplicating event
        to each queue. Better idea for this ??? */
 
-    cm_core_t *cur;
+    CMCore *cur;
 
     TAILQ_FOREACH(cur, head, cores) {
         coremu_notify_intr(e, size, cur);
@@ -224,7 +190,7 @@ void coremu_broadcast_intr_other(void *e, size_t size)
        Currently solve this problem by duplicating event
        to each queue. Better idea for this ??? */
 
-    cm_core_t *self, *cur;
+    CMCore *self, *cur;
     self = coremu_get_self();
     TAILQ_FOREACH(cur, head, cores) {
         if(cur != self)

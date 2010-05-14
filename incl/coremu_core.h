@@ -9,7 +9,7 @@
 /**
  * Init a core in COREMU. Basically, coremu core contains
  * a emulator specific data OPAQUE. */
-cm_core_t *coremu_core_init(void *opaque);
+CMCore *coremu_core_init(void *opaque);
 
 /**
  * Run all cores with THR_FN as the start function, with ARG
@@ -18,11 +18,11 @@ void coremu_run_all_cores(thr_start_routine thr_fn, void *arg);
 
 /**
  * Get the first core in all cores */
-cm_core_t *coremu_get_first_core(void);
+CMCore *coremu_get_first_core(void);
 
 /**
  * Return the core data for the core itself */
-cm_core_t *coremu_get_self(void);
+CMCore *coremu_get_self(void);
 
 /**
  * assert the cur thr is a core thr - i.e. its
@@ -31,7 +31,7 @@ void coremu_assert_core_thr(void);
 
 /**
  * Return the specified core object */
-cm_core_t *coremu_get_core(pthread_t tid);
+CMCore *coremu_get_core(pthread_t tid);
 
 /**
  * Return the head of the tailq of cores */
@@ -46,11 +46,11 @@ void coremu_pause_core(void);
 
 void coremu_restart_all_cores(void);
 
-void coremu_wait_pause(cm_core_t *core);
+void coremu_wait_pause(CMCore *core);
 
 /**
  * Wait on a specfic core until it exits... */
-int coremu_wait_tid(cm_core_t *coreid, void **val_ptr);
+int coremu_wait_tid(CMCore *coreid, void **val_ptr);
 
 /**
  * Dump the priorities of each CORE thread */

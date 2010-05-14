@@ -29,7 +29,7 @@ void coremu_prepare_pio_ioreq(cm_ioreq_t *q, uint64_t addr,
     q->state = STATE_IOREQ_READY;
     q->type = IOREQ_TYPE_PIO;
 
-    cm_core_t *core = coremu_get_self();
+    CMCore *core = coremu_get_self();
     q->coreid = core->coreid;
 
     static int id = 0;
@@ -50,7 +50,7 @@ void coremu_prepare_mmio_ioreq(cm_ioreq_t *q,uint64_t addr,
     q->state = STATE_IOREQ_READY;
     q->type = IOREQ_TYPE_MMIO;
 
-    cm_core_t *core = coremu_get_self();
+    CMCore *core = coremu_get_self();
     q->coreid = core->coreid;
 
     static int id = 0;

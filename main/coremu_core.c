@@ -31,7 +31,7 @@ cores_head_t coremu_cores;
 static volatile int init_done = false;
 
 /* coremu core itself for each thread */
-__thread cm_core_t *core_self = NULL;
+__thread CMCore* core_self = NULL;
 __thread pthread_mutexattr_t attr;
 static pthread_attr_t thr_attr;
 
@@ -104,12 +104,12 @@ void coremu_init(int smp_cpus, msg_handler msg_fn)
     sigaction(COREMU_SIGNAL, &act, NULL);
 }
 
-cm_core_t *coremu_core_init(void* opaque)
+CMCore *coremu_core_init(void* opaque)
 {
     int err = 0;
 
     /* step 1: allocate the core */
-    cm_core_t *core = (cm_core_t *) qemu_mallocz(sizeof(cm_core_t));
+    CMCore *core = (cm_core_t *) qemu_mallocz(sizeof(cm_core_t));
 
     /* step 2: init the hardware event queue and its lock */
     err = pthread_mutexattr_init(&attr);
@@ -145,7 +145,7 @@ cm_core_t *coremu_core_init(void* opaque)
 
 void coremu_run_all_cores(thr_start_routine thr_fn, void *arg)
 {
-    cm_core_t *cur;
+    CMCore *cur;
     int err;
 
     pthread_attr_init(&thr_attr);
@@ -170,13 +170,13 @@ int coremu_init_done_p()
     return done_flag;
 }
 
-cm_core_t *coremu_get_first_core()
+CMCore *coremu_get_first_core()
 {
     cm_assert((! TAILQ_EMPTY(&coremu_cores)), "NO cores?!");
     return TAILQ_FIRST(&coremu_cores);
 }
 
-cm_core_t *coremu_get_self()
+CMCore *coremu_get_self()
 {
     cm_assert((! TAILQ_EMPTY(&coremu_cores)), "NO cores?!");
     coremu_assert_core_thr();
@@ -197,12 +197,12 @@ void coremu_assert_core_thr()
     return;
 }
 
-cm_core_t *coremu_get_core(core_t coreid)
+CMCore *coremu_get_core(core_t coreid)
 {
     cm_assert((! TAILQ_EMPTY(&coremu_cores)),
               "NO cores?!");
 
-    cm_core_t *cur;
+    CMCore *cur;
     TAILQ_FOREACH(cur, &coremu_cores, cores) {
         if(cur->coreid == coreid) {
             return cur;
@@ -227,14 +227,14 @@ void coremu_wait_init(void)
     }
 }
 
-int coremu_wait_tid(cm_core_t *core, void **val_ptr)
+int coremu_wait_tid(CMCore *core, void **val_ptr)
 {
     return pthread_join(core->coreid, val_ptr);
 }
 
 void coremu_dump_prio()
 {
-    cm_core_t *cur = NULL;
+    CMCore *cur = NULL;
     cores_head_t *core_head = coremu_get_core_tailq();
 
     int policy;
@@ -252,7 +252,7 @@ void coremu_dump_prio()
 
 void coremu_dump_core_profiling_info(void)
 {
-    cm_core_t *cur = NULL;
+    CMCore *cur = NULL;
     cores_head_t *core_head = coremu_get_core_tailq();
 
     TAILQ_FOREACH(cur, core_head, cores)
@@ -295,7 +295,7 @@ void coremu_dump_timer_debug_info(cm_timer_debug_t *debug_info, const char *msg)
 
 void coremu_dump_debug_info(void)
 {
-    cm_core_t *cur = NULL;
+    CMCore *cur = NULL;
     cores_head_t *core_head = coremu_get_core_tailq();
 
     TAILQ_FOREACH(cur, core_head, cores)
@@ -311,7 +311,7 @@ void coremu_core_exit(void *value_ptr)
 
 void coremu_pause_core()
 {
-	cm_core_t *self = coremu_get_self();
+	CMCore *self = coremu_get_self();
 	coremu_mutex_lock(&pause_mutex,"coremu_pause_core");
 	if(self->state==STATE_RUN){
 		self->state=STATE_PAUSE;
@@ -321,7 +321,7 @@ void coremu_pause_core()
 	coremu_mutex_unlock(&pause_mutex,"coremu_pause_core");
 }
 
-void coremu_wait_pause(cm_core_t *core)
+void coremu_wait_pause(CMCore *core)
 {
 	coremu_mutex_lock(&pause_mutex,"coremu_wait_pause");
 	while(core->state!=STATE_PAUSE){

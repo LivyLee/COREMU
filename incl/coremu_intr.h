@@ -6,19 +6,19 @@
 
 /**
  * Insert an intrrupt into queue. */
-void coremu_put_intr(void *e, size_t size, cm_core_t *core);
+void coremu_put_intr(void *e, size_t size, CMCore *core);
 
 /**
  * Get the first interrupt from queue. */
-void *coremu_get_intr(cm_core_t *core);
+void *coremu_get_intr(CMCore *core);
 
 /**
  * Get the number of pending interrupts*/
-uint64_t coremu_intr_get_size(cm_core_t *core);
+uint64_t coremu_intr_get_size(CMCore *core);
 
 /**
  * Does the CORE has pending interrupt? */
-int coremu_intr_p(cm_core_t *core);
+int coremu_intr_p(CMCore *core);
 
 /**
  * Prepare a standard 'intr' */
@@ -38,7 +38,7 @@ void coremu_prepare_tbinval_intr(qemu_intr_t *intr,
                                  uint32_t *tb_invalidate_ack);
 /**
  * Notify the core of the interrupt. */
-void coremu_notify_intr(void *e, size_t size, cm_core_t *core);
+void coremu_notify_intr(void *e, size_t size, CMCore *core);
 
 /**
  * Broadcast an interrupt to all cores.
