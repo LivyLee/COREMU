@@ -53,9 +53,6 @@ __thread CMCore* core_self = NULL;
 __thread pthread_mutexattr_t attr;
 static pthread_attr_t thr_attr;
 
-/* coremu profiling */
-int cm_profiling_p = 0;
-
 /* coremu retry profiling */
 __thread unsigned long int cm_retry_num = 0;
 
@@ -79,7 +76,6 @@ void coremu_init(int smp_cpus, msg_handler msg_fn)
 
     /* step 0: init scheduling support */
     coremu_init_sched_all();
-    cm_profiling_p = COREMU_PROFILE;
 
     cm_cores = (CMCore *) qemu_mallocz(smp_cpus * sizeof(*cm_cores));
 
@@ -101,10 +97,10 @@ void coremu_init(int smp_cpus, msg_handler msg_fn)
     TAILQ_INIT(&coremu_cores);
 
     /* step 2: init the coremu timer thread */
-    
+
     /* clear the block signal set */
     //sigemptyset(&cm_blk_sigset);
-    
+
     /* block TIMERRTSIG */
     sigset_t set;
     sigemptyset(&set);
@@ -113,7 +109,7 @@ void coremu_init(int smp_cpus, msg_handler msg_fn)
 
     /* add the block signal to block signal set */
     //sigaddset(&cm_blk_sigset, TIMERRTSIG);
-    
+
     coremu_start_timer_thread();
     coremu_init_hw(smp_cpus);
 
@@ -141,9 +137,9 @@ CMCore *coremu_core_init(int id, void* opaque)
     err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
     cm_assert((err == 0), "cannot set mutex type");
 
-#if INTR_LOCK_FREE
+#ifdef INTR_LOCK_FREE
     core->intr_queue = new_queue();
-#elif INTR_LOCK
+#elif defined(INTR_LOCK)
     TAILQ_INIT(&core->intr_queue);
     pthread_mutex_init(&core->intr_lock, &attr);
     core->intr_count = 0;

@@ -24,18 +24,18 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#define DEBUG_COREMU          0
-#define DEBUG_IOREQ_WAIT      0
-#define DEBUG_IOREQ_HANDLER   0
-#define DEBUG_IOREQ_QUEUE     0
-#define VERBOSE_COREMU        1
-#define DEBUG_IO_REQ          0
+/*#define DEBUG_COREMU*/
+/*#define DEBUG_IOREQ_WAIT*/
+/*#define DEBUG_IOREQ_HANDLER*/
+/*#define DEBUG_IOREQ_QUEUE*/
+#define VERBOSE_COREMU
+/*#define DEBUG_IO_REQ*/
 
 #include "coremu_utils.h"
 #include "coremu_hw.h"
 #include "coremu_sched.h"
 
-#if IOREQ_SYNC                  /* lock-synchronized I/O */
+#ifdef IOREQ_SYNC                  /* lock-synchronized I/O */
 
 void coremu_ioreq_wait()
 {
@@ -43,7 +43,7 @@ void coremu_ioreq_wait()
     assert(0);
 }
 
-#elif IOREQ_LOCK_FREE
+#elif defined(IOREQ_LOCK_FREE)
 
 #include <coremu_hw_lockfree.h>
 
@@ -105,7 +105,7 @@ static inline void ioreq_handler(volatile cm_ioreq_t *req)
     }
     case IOREQ_TYPE_MMIO:
     {
-#if DEBUG_IOREQ_HANDLER
+#ifdef DEBUG_IOREQ_HANDLER
         cm_print("handle mmio-req: %d", req->req_id);
 #endif
 

@@ -30,7 +30,8 @@
 #include "coremu_config.h"
 
 /* ************************* Base types ************************* */
-#include <stdbool.h>
+#define true 1
+#define false 0
 
 typedef void (msg_handler) (int signo, siginfo_t *info, void *context);
 
@@ -117,7 +118,7 @@ typedef struct cm_timer_debug_s {
 } cm_timer_debug_t;
 
 /* core tailq type */
-TAILQ_HEAD(cores_head, cm_core_s);
+TAILQ_HEAD(cores_head, CMCore);
 typedef struct cores_head cores_head_t;
 
 /* processor type */
@@ -125,16 +126,16 @@ typedef struct CMCore {
     uint32_t serial;                     /* number start from 0 */
     core_t coreid;                       /* ID of the core */
     tid_t tid;                           /* kernel process id */
-    TAILQ_ENTRY(cm_core_s) cores;        /* cores are kept in a tailq */
+    TAILQ_ENTRY(CMCore) cores;        /* cores are kept in a tailq */
 
     cm_local_alarm_t *local_alarm;       /* local alarm timer for each core */
 
-#if INTR_LOCK_FREE
+#ifdef INTR_LOCK_FREE
     queue_t *intr_queue;                 /* interrupt queue for the core */
     uint64_t time_stamp;                 /* recode the time of intr pending */
     uint64_t intr_thresh_hold;                /* the thresh hold for intr sending */
     uint8_t sig_pending;                    /* if has signal not receive */
-#elif INTR_LOCK
+#elif defined(INTR_LOCK)
     TAILQ_HEAD(, cm_intr_s) intr_queue;  /* interrupt queue for the core */
     uint64_t intr_count;                 /* #pending interrupts */
     pthread_mutex_t intr_lock;           /* lock for the interrupt queue */

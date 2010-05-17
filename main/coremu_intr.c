@@ -60,11 +60,11 @@ void coremu_put_intr(void *e, size_t size, CMCore *core)
 
     cm_intr->opaque = opaque;
 
-#if INTR_LOCK_FREE
+#ifdef INTR_LOCK_FREE
 
     enqueue(core->intr_queue, (uint64_t) cm_intr);
 
-#elif INTR_LOCK
+#elif defined(INTR_LOCK)
 
     coremu_mutex_lock(&core->intr_lock,
                       "cannot acquire hw event queue lock");
@@ -87,14 +87,14 @@ void *coremu_get_intr(CMCore *core)
     if(! coremu_intr_p(core))
         return NULL;
 
-#if INTR_LOCK_FREE
+#ifdef INTR_LOCK_FREE
 
     int ret; uint64_t tmp;
     ret = dequeue(core->intr_queue, &tmp);
     assert(ret);
     cm_intr = (cm_intr_t *)tmp;
 
-#elif INTR_LOCK
+#elif defined(INTR_LOCK)
 
     coremu_mutex_lock(&core->intr_lock,
                       "cannot acquire hw event queue lock");
@@ -130,10 +130,10 @@ int coremu_intr_p(CMCore *core)
  * But this mechanism seems to be wonderful when number of emulated
  * cores is more than 128 (test enviroment R900)
  */
-void coremu_notify_intr(void *e, CMCore *core)
+void coremu_notify_intr(void *e, size_t size, CMCore *core)
 {
     uint64_t pending_intr;
-    
+
     if(cm_profiling_p) {
         qemu_intr_t *intr = (qemu_intr_t *)e;
         assert(intr->source < CM_INTR_CNT);
@@ -150,32 +150,26 @@ void coremu_notify_intr(void *e, CMCore *core)
 
     pending_intr = coremu_intr_get_size(core);
 
-/*  here need to do somethings that make the thresh hold to be  more smart!!!*/
-//	if(pending_intr > 10)
-//		core->intr_thresh_hold = 0;
+    /*  here need to do somethings that make the thresh hold to be  more smart!!!*/
+    //	if(pending_intr > 10)
+    //		core->intr_thresh_hold = 0;
+
+    if(core->sig_pending) {
+        if(core->intr_thresh_hold < 100)
+            core->intr_thresh_hold += 10;
+        return;
+    }
 
 
-  if(core->sig_pending)
-  {
-	if(core->intr_thresh_hold < 100)
-		core->intr_thresh_hold += 10;
-	return;
-  }
-   
+    if(!cm_adaptive_intr_delay || core->state==STATE_HALT
+            || pending_intr > core->intr_thresh_hold
+            || (core->state == STATE_PAUSE && pending_intr > 10)) {
+        core->sig_pending = 1;
+        core->state = STATE_RUN;
 
-  if(!cm_adaptive_intr_delay || core->state==STATE_HALT
-		  || pending_intr > core->intr_thresh_hold
-		  || (core->state == STATE_PAUSE && pending_intr > 10))
-  {
-	  core->sig_pending = 1;
-	  core->state = STATE_RUN;
-
-	  coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
-	  pthread_kill(core->coreid, COREMU_SIGNAL);
-  }
-
-  
-    
+        coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
+        pthread_kill(core->coreid, COREMU_SIGNAL);
+    }
 }
 
 /* broadcast event to core cores */

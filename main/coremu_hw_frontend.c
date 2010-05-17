@@ -79,7 +79,7 @@ void coremu_prepare_mmio_ioreq(cm_ioreq_t *q,uint64_t addr,
 }
 
 /* ******** ISA support ******** */
-#if IOREQ_SYNC                  /* synchronized I/O */
+#ifdef IOREQ_SYNC                  /* synchronized I/O */
 
 /* -- Port Mapped I/O -- */
 void coremu_cpu_out(int addr, int val, uint64_t size)
@@ -107,7 +107,7 @@ int coremu_mmio_read(int index, uint32_t shift, uint64_t addr)
     return ret;
 }
 
-#elif IOREQ_LOCK_FREE           /* lockfree I/O */
+#elif defined(IOREQ_LOCK_FREE)           /* lockfree I/O */
 
 static inline cm_ioreq_t *ioreq_alloc(void);
 static inline void ioreq_free(cm_ioreq_t *q);

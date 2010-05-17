@@ -57,15 +57,13 @@ void coremu_init_hw(int smp_cpus)
 {
     register_hw_thr();
 
-#if IOREQ_SYNC
+#ifdef IOREQ_SYNC
     /* do nothing */
-#elif IOREQ_LOCK_FREE
+#elif defined(IOREQ_LOCK_FREE)
     /* Init the sync IO ring */
     cm_assert((smp_cpus > 0),
               "[fatal] NO cpus?!");
     coremu_ioreq_ring_init(smp_cpus);
-#else
-    assert(0);
 #endif
 }
 
