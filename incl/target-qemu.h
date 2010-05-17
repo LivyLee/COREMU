@@ -33,7 +33,7 @@
 #define TARGET_LONG_BITS 32
 #endif
 
-#include <coremu_types.h>
+#include <coremu-types.h>
 #include <cpu-defs.h>
 
 /* for TB_INVALIDATE_EVENT */

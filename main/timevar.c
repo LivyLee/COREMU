@@ -29,7 +29,7 @@
 #include <sys/times.h>
 #include <sys/resource.h>
 
-#include "coremu_utils.h"
+#include "coremu-utils.h"
 #include "timevar.h"
 
 #ifndef RUSAGE_SELF

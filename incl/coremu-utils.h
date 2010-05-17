@@ -1,9 +1,8 @@
 /*
  * COREMU Parallel Emulator Framework
  *
- * Tools used in COREMU and QEMU (safe to include anywhere). For utilities that
- * are only used in COREMU (e.g. fprintf may conflict with QEMU), refer to
- * 'cm_utils.h'
+ * Utilities that only used in COREMU, these utilities may conflict with those
+ * defined in QEMU.
  *
  * Copyright (C) 2010 PPI, Fudan Univ. <http://ppi.fudan.edu.cn/system_research_group>
  *
@@ -11,7 +10,6 @@
  *  Zhaoguo Wang    <zgwang@fudan.edu.cn>
  *  Yufei Chen      <chenyufei@fudan.edu.cn>
  *  Ran Liu         <naruilone@gmail.com>
- *  Xi Wu           <wuxi@fudan.edu.cn>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,9 +25,11 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TOOLS_H
-#define _TOOLS_H
+#ifndef _COREMU_UTILS_H
+#define _COREMU_UTILS_H
 
+#include <stdio.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -38,18 +38,31 @@
 #include <string.h>
 #include <pthread.h>
 #include <signal.h>
+#include <sys/queue.h>
+
+/* Debugging support */
+#include <execinfo.h>
 
 /* OS support */
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+
+/* libtopology suppport */
+#include <topology.h>
 
 /* QEMU */
-#include <sys-queue.h>
 #include <qemu-common.h>
 
-/* COREMU */
+#include "timevar.h"
+#include "sched.h"
+
+/* Debugging utilities for COREMU */
 #include "coremu.h"
 #include "coremu-thread.h"
+#include "coremu-atomic.h"
+#include "coremu-debug.h"
 
 /* ******** Common utilities ******** */
 void maketimeout(struct timespec *tsp, long seconds);
@@ -62,5 +75,5 @@ void coremu_serialize(void);
 pid_t coremu_gettid(void);
 void coremu_backtrace(void);
 
-#endif /* _TOOLS_H */
+#endif /* _COREMU_UTILS_H */
 

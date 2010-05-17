@@ -25,10 +25,10 @@
 #ifndef _COREMU_H
 #define _COREMU_H
 
-#include "coremu_config.h"
-#include "ms_queue.h"
-#include "coremu_types.h"
-#include "coremu_core.h"
+#include "coremu-config.h"
+#include "ms-queue.h"
+#include "coremu-types.h"
+#include "coremu-core.h"
 
 /* Signals used in COREMU */
 #define TIMERRTSIG              SIGRTMIN          /* Timer thread implicit signal */
