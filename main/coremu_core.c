@@ -1,11 +1,29 @@
-/* @(#)coremu_core.c
+/*
+ * COREMU Parallel Emulator Framework
  *
  * core emulation support for COREMU parallel
  * emulation library.
  *
- * contact:
- * Xi Wu (wuxi@fudan.edu.cn)
- * Zhaoguo Wang (tigerwang1986@gmail.com)  */
+ * Copyright (C) 2010 PPI, Fudan Univ. <http://ppi.fudan.edu.cn/system_research_group>
+ *
+ * Authors:
+ *  Zhaoguo Wang    <zgwang@fudan.edu.cn>
+ *  Yufei Chen      <chenyufei@fudan.edu.cn>
+ *  Ran Liu         <naruilone@gmail.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, see <http://www.gnu.org/licenses/>.
+ */
 
 #define DEBUG_COREMU     0
 #define VERBOSE_COREMU   1
@@ -46,6 +64,9 @@ __thread unsigned long int cm_retry_num = 0;
 
 extern int cm_adaptive_intr_delay;
 extern int cm_intr_delay_step;
+
+CMCore *cm_cores;
+
 void coremu_init(int smp_cpus, msg_handler msg_fn)
 {
     cm_print("\nTIMERRTSIG:\t\t%d"
@@ -60,20 +81,22 @@ void coremu_init(int smp_cpus, msg_handler msg_fn)
     coremu_init_sched_all();
     cm_profiling_p = COREMU_PROFILE;
 
+    cm_cores = (CMCore *) qemu_mallocz(smp_cpus * sizeof(*cm_cores));
+
     /* the adaptive intr delay mechanism works well 
         when core's number is more than 64 (test enviroment R900)*/
     if(smp_cpus > 64)
         cm_adaptive_intr_delay = 1;
     else
         cm_adaptive_intr_delay = 0;
-    
+
      /**
       * we define the step is 1, if the number of cores
       * is not more than 128
-      */	
+      */    
      if(cm_adaptive_intr_delay)
-	    cm_intr_delay_step = (smp_cpus + 127)/128;
-    
+        cm_intr_delay_step = (smp_cpus + 127)/128;
+
     /* step 1: init the global core list */
     TAILQ_INIT(&coremu_cores);
 
@@ -104,12 +127,12 @@ void coremu_init(int smp_cpus, msg_handler msg_fn)
     sigaction(COREMU_SIGNAL, &act, NULL);
 }
 
-CMCore *coremu_core_init(void* opaque)
+CMCore *coremu_core_init(int id, void* opaque)
 {
     int err = 0;
 
-    /* step 1: allocate the core */
-    CMCore *core = (cm_core_t *) qemu_mallocz(sizeof(cm_core_t));
+    /* step 1: get the core */
+    CMCore *core = &cm_cores[id];
 
     /* step 2: init the hardware event queue and its lock */
     err = pthread_mutexattr_init(&attr);
@@ -136,7 +159,7 @@ CMCore *coremu_core_init(void* opaque)
 
     /* reset the profile */
     core->core_profile.retry_num_addr = &cm_retry_num;
-    
+
     /* step 5: put this core into cores tailq */
     TAILQ_INSERT_TAIL(&coremu_cores, core, cores);
 
@@ -311,27 +334,27 @@ void coremu_core_exit(void *value_ptr)
 
 void coremu_pause_core()
 {
-	CMCore *self = coremu_get_self();
-	coremu_mutex_lock(&pause_mutex,"coremu_pause_core");
-	if(self->state==STATE_RUN){
-		self->state=STATE_PAUSE;
-		coremu_cond_wait(&pause_cond, &pause_mutex);
-		self->state=STATE_RUN;
-	}
-	coremu_mutex_unlock(&pause_mutex,"coremu_pause_core");
+    CMCore *self = coremu_get_self();
+    coremu_mutex_lock(&pause_mutex,"coremu_pause_core");
+    if(self->state==STATE_RUN){
+        self->state=STATE_PAUSE;
+        coremu_cond_wait(&pause_cond, &pause_mutex);
+        self->state=STATE_RUN;
+    }
+    coremu_mutex_unlock(&pause_mutex,"coremu_pause_core");
 }
 
 void coremu_wait_pause(CMCore *core)
 {
-	coremu_mutex_lock(&pause_mutex,"coremu_wait_pause");
-	while(core->state!=STATE_PAUSE){
-		coremu_mutex_unlock(&pause_mutex,"coremu_wait_pause");
-		coremu_mutex_lock(&pause_mutex,"coremu_wait_pause");
-	}
-	coremu_mutex_unlock(&pause_mutex,"coremu_wait_pause");
+    coremu_mutex_lock(&pause_mutex,"coremu_wait_pause");
+    while(core->state!=STATE_PAUSE){
+        coremu_mutex_unlock(&pause_mutex,"coremu_wait_pause");
+        coremu_mutex_lock(&pause_mutex,"coremu_wait_pause");
+    }
+    coremu_mutex_unlock(&pause_mutex,"coremu_wait_pause");
 }
 
 void coremu_restart_all_cores()
 {
-	coremu_cond_broadcast(&pause_cond);
+    coremu_cond_broadcast(&pause_cond);
 }
