@@ -25,12 +25,6 @@
 #ifndef _COREMU_INTR_H
 #define _COREMU_INTR_H
 
-/* Get the number of pending interrupts*/
-uint64_t coremu_intr_get_size(CMCore *core);
-
-/* Does the CORE has pending interrupt? */
-int coremu_intr_p(CMCore *core);
-
 /* Send interrupt to the core. */
 void coremu_send_intr(void *e, int coreid);
 

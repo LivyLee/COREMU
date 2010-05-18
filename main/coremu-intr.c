@@ -25,8 +25,8 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#define DEBUG_COREMU    0
-#define VERBOSE_COREMU  1
+/*#define DEBUG_COREMU*/
+#define VERBOSE_COREMU
 
 #include <signal.h>
 #include "coremu-utils.h"
@@ -37,8 +37,6 @@
 
 #define INTR_NUM_THRESHOLD   50    /* notify a CORE if many pending signals */
 #define INTR_TIME_THRESHOLD  1000   /* 1ms */
-/* hardware profile */
-cm_profile_t hw_profile;
 
 /* the flag of adpative signal delay */
 int cm_adaptive_intr_delay;
@@ -46,6 +44,16 @@ int cm_adaptive_intr_delay;
 /* the step of intr delay, the signal accept time must be
  * more than cm_intr_delay_step * 10us */
 int cm_intr_delay_step;
+
+static inline uint64_t coremu_intr_get_size(CMCore *core)
+{
+    return ms_queue_get_size(core->intr_queue);
+}
+
+static inline int coremu_intr_p(CMCore *core)
+{
+    return coremu_intr_get_size(core) != 0;
+}
 
 /* Insert an intrrupt into queue.
  * Signal-unsafe. block the signal in the lock free function */
@@ -69,15 +77,6 @@ static void *coremu_get_intr(CMCore *core)
     return (void *)intr;
 }
 
-uint64_t coremu_intr_get_size(CMCore *core)
-{
-    return ms_queue_get_size(core->intr_queue);
-}
-
-int coremu_intr_p(CMCore *core)
-{
-    return coremu_intr_get_size(core) != 0;
-}
 
 event_handler_t event_handler;
 void coremu_register_event_handler(event_handler_t fn)
@@ -93,10 +92,11 @@ void coremu_register_event_notifier(event_notifier_t fn)
 
 void coremu_receive_intr()
 {
-    while (coremu_intr_p(coremu_get_core_self())) {
+    CMCore *core = coremu_get_core_self();
+    while (coremu_intr_p(core)) {
         /* call registed interrupt handler */
         if (event_handler)
-            event_handler(coremu_get_intr(coremu_get_core_self()));
+            event_handler(coremu_get_intr(core));
     }
 }
 
@@ -108,8 +108,15 @@ void coremu_receive_intr()
  */
 void coremu_send_intr(void *e, int coreid)
 {
+    cm_assert(e, "interrupt argument is NULL");
     uint64_t pending_intr;
     CMCore *core = coremu_get_core(coreid);
+
+    /* Call event handler directly if sending interrupt to self. */
+    if (core == coremu_get_core_self()) {
+        event_handler(e);
+        return;
+    }
 
     coremu_put_intr(core, e);
     pending_intr = coremu_intr_get_size(core);

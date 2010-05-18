@@ -54,8 +54,6 @@ struct topo_topology_info topoinfo;
 static unsigned int depth;
 static unsigned int cores;
 
-extern int smp_cpus;
-
 static inline void sched_halted(void);
 static inline void sched_cpu(void);
 static inline void sched_io(void);
@@ -122,8 +120,8 @@ static void topology_bind_core()
 
     socket_depth = topo_get_type_depth(topology, TOPO_OBJ_SOCKET);
     socket_num =  topo_get_depth_nbobjs(topology, socket_depth);
-    if (smp_cpus > host_cpu_avail) {
-        int i = smp_cpus/host_cpu_avail;
+    if (cm_smp_cpus > host_cpu_avail) {
+        int i = cm_smp_cpus/host_cpu_avail;
         index = (self->serial / i)/socket_num;
     } else {
         index = (self->serial % 16) / socket_num;
@@ -144,8 +142,8 @@ static void topology_bind_core()
 #else
 
 #if CM_BIND_SAME_CORE2
-    if(smp_cpus > host_cpu_avail) {
-        int i = smp_cpus/host_cpu_avail;
+    if(cm_smp_cpus > host_cpu_avail) {
+        int i = cm_smp_cpus/host_cpu_avail;
         assert(i > 0 );
         index = (self->serial / i);
         assert(index < cores );

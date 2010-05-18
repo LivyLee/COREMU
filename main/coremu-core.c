@@ -81,7 +81,7 @@ void coremu_init(int smp_cpus)
 
     /* the adaptive intr delay mechanism works well 
         when core's number is more than 64 (test enviroment R900)*/
-    if(smp_cpus > 64)
+    if(cm_smp_cpus > 64)
         cm_adaptive_intr_delay = 1;
     else
         cm_adaptive_intr_delay = 0;
@@ -91,10 +91,10 @@ void coremu_init(int smp_cpus)
       * is not more than 128
       */
      if(cm_adaptive_intr_delay)
-        cm_intr_delay_step = (smp_cpus + 127)/128;
+        cm_intr_delay_step = (cm_smp_cpus + 127)/128;
 
     /* step 1: init the global core array */
-    cm_cores = (CMCore *) qemu_mallocz(smp_cpus * sizeof(*cm_cores));
+    cm_cores = (CMCore *) qemu_mallocz(cm_smp_cpus * sizeof(*cm_cores));
 
     /* step 2: init the coremu timer thread */
 
@@ -111,7 +111,7 @@ void coremu_init(int smp_cpus)
     //sigaddset(&cm_blk_sigset, TIMERRTSIG);
 
     coremu_start_timer_thread();
-    coremu_init_hw(smp_cpus);
+    coremu_init_hw(cm_smp_cpus);
 
     /* step 3: register CORMEU signal handling */
     struct sigaction act;
