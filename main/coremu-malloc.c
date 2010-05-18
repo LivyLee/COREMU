@@ -43,7 +43,7 @@ void *coremu_malloc(size_t size)
 
 void *coremu_mallocz(size_t size)
 {
-    void *p = cm_malloc(size);
+    void *p = coremu_malloc(size);
     memset(p, 0, size);
     return p;
 }

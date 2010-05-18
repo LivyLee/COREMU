@@ -134,18 +134,6 @@ void coremu_notify_intr(void *e, size_t size, CMCore *core)
 {
     uint64_t pending_intr;
 
-    if(cm_profiling_p) {
-        qemu_intr_t *intr = (qemu_intr_t *)e;
-        assert(intr->source < CM_INTR_CNT);
-        if(coremu_hw_thr_p()) {
-            atomic_inc64(&hw_profile.intr_send[intr->source]);
-        } else {
-            CMCore *self = coremu_get_self();
-            assert(self != NULL);
-            atomic_inc64(&self->core_profile.intr_send[intr->source]);
-        }
-    }
-
     coremu_put_intr(e, size, core);
 
     pending_intr = coremu_intr_get_size(core);
