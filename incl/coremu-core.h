@@ -37,26 +37,16 @@ CMCore *coremu_core_init(int id, void *opaque);
  * the parameter passed. */
 void coremu_run_all_cores(thr_start_routine thr_fn, void *arg);
 
-/**
- * Get the first core in all cores */
-CMCore *coremu_get_first_core(void);
-
-/**
- * Return the core data for the core itself */
-CMCore *coremu_get_self(void);
-
-/**
- * assert the cur thr is a core thr - i.e. its
- * coremu core object is not nil */
+/* assert the cur thr is a core thr
+ * i.e. its  coremu core object is not nil */
 void coremu_assert_core_thr(void);
 
-/**
- * Return the specified core object */
-CMCore *coremu_get_core(pthread_t tid);
+extern int cm_smp_cpus;
+/* Return the specified core object. */
+CMCore *coremu_get_core(int coreid);
 
-/**
- * Return the head of the tailq of cores */
-cores_head_t *coremu_get_core_tailq(void);
+/* Return the core data for the core itself. */
+CMCore *coremu_get_core_self();
 
 /**
  * Exit current core with return value pointer VALUE_PTR.
@@ -73,25 +63,4 @@ void coremu_wait_pause(CMCore *core);
  * Wait on a specfic core until it exits... */
 int coremu_wait_tid(CMCore *coreid, void **val_ptr);
 
-/**
- * Dump the priorities of each CORE thread */
-void coremu_dump_prio(void);
-
-/**
- * Dump the profiling information of each CORE */
-void coremu_dump_core_profiling_info(void);
-
-/**
- * Dump a specified profile
- */
-void coremu_dump_profile(cm_profile_t *profile, const char *msg);
-
-/**
- * Dump debug infomation
- */
-void coremu_dump_debug_info(void);
-
-void coremu_dump_timer_debug_info(cm_timer_debug_t * debug_info, const char * msg);
-
 #endif /* _COREMU_CORE_H */
-

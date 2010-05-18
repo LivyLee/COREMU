@@ -113,23 +113,19 @@ static void topology_bind_core()
 {
     topo_obj_t obj;
     topo_cpuset_t cpuset;   
-    CMCore *self = coremu_get_self();
+    CMCore *self = coremu_get_core_self();
     int index;
 
 #if CM_BIND_SOCKET
     unsigned int socket_depth;
     unsigned int socket_num;
 
-    
     socket_depth = topo_get_type_depth(topology, TOPO_OBJ_SOCKET);
     socket_num =  topo_get_depth_nbobjs(topology, socket_depth);
-    if(smp_cpus > host_cpu_avail)
-    {
+    if (smp_cpus > host_cpu_avail) {
         int i = smp_cpus/host_cpu_avail;
         index = (self->serial / i)/socket_num;
-    }
-    else
-    {
+    } else {
         index = (self->serial % 16) / socket_num;
 
     }
@@ -148,26 +144,16 @@ static void topology_bind_core()
 #else
 
 #if CM_BIND_SAME_CORE2
-
-    
-
-    if(smp_cpus > host_cpu_avail)
-    {
+    if(smp_cpus > host_cpu_avail) {
         int i = smp_cpus/host_cpu_avail;
         assert(i > 0 );
         index = (self->serial / i);
         assert(index < cores );
-        
-    }else
-    {
+    } else {
         index = (self->serial % cores);
-
     }
-        
 #elif CM_BIND_SAME_CORE
-
        index = (self->serial % cores);
-
 #endif
 
         obj = topo_get_obj_by_depth(topology, depth, index);

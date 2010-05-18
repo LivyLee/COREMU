@@ -25,8 +25,8 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#define DEBUG_COREMU     0
-#define VERBOSE_COREMU   1
+/*#define DEBUG_COREMU*/
+#define VERBOSE_COREMU
 
 #define _GNU_SOURCE             /* for some GNU specific interfaces */
 
@@ -34,22 +34,17 @@
 #include "coremu-hw.h"
 #include "coremu-timer.h"
 #include "coremu-sched.h"
+#include "coremu-hw-lockfree.h"
+#include "coremu-intr.h"
 
-#if IOREQ_LOCK_FREE
-#include <coremu_hw_lockfree.h>
-#endif
 /* pause condition */
 pthread_cond_t pause_cond=COREMU_COND_INITIALIZER;
 pthread_mutex_t pause_mutex=COREMU_LOCK_INITIALIZER;
-
-/* list of cores */
-cores_head_t coremu_cores;
 
 /* coremu cores init related */
 static volatile int init_done = false;
 
 /* coremu core itself for each thread */
-__thread CMCore* core_self = NULL;
 __thread pthread_mutexattr_t attr;
 static pthread_attr_t thr_attr;
 
@@ -62,9 +57,15 @@ __thread unsigned long int cm_retry_num = 0;
 extern int cm_adaptive_intr_delay;
 extern int cm_intr_delay_step;
 
+/* Number of cores. */
+int cm_smp_cpus;
+/* Array holding all the core object. */
 CMCore *cm_cores;
+/* Pointer to the core object of the thread. */
+COREMU_THREAD CMCore *cm_core_self;
 
-void coremu_init(int smp_cpus, msg_handler msg_fn)
+extern void coremu_cpu_signal_handler(int signo, siginfo_t *info, void *context);
+void coremu_init(int smp_cpus)
 {
     cm_print("\nTIMERRTSIG:\t\t%d"
              "\nCOREMU_TIMER_SIGNAL:\t%d"
@@ -73,11 +74,10 @@ void coremu_init(int smp_cpus, msg_handler msg_fn)
              "\nCOREMU_AIO_SIG:\t\t%d\n",
              TIMERRTSIG, COREMU_TIMER_SIGNAL,
              COREMU_TIMER_ALARM, COREMU_SIGNAL, COREMU_AIO_SIG);
+    cm_smp_cpus = smp_cpus;
 
     /* step 0: init scheduling support */
     coremu_init_sched_all();
-
-    cm_cores = (CMCore *) qemu_mallocz(smp_cpus * sizeof(*cm_cores));
 
     /* the adaptive intr delay mechanism works well 
         when core's number is more than 64 (test enviroment R900)*/
@@ -93,8 +93,8 @@ void coremu_init(int smp_cpus, msg_handler msg_fn)
      if(cm_adaptive_intr_delay)
         cm_intr_delay_step = (smp_cpus + 127)/128;
 
-    /* step 1: init the global core list */
-    TAILQ_INIT(&coremu_cores);
+    /* step 1: init the global core array */
+    cm_cores = (CMCore *) qemu_mallocz(smp_cpus * sizeof(*cm_cores));
 
     /* step 2: init the coremu timer thread */
 
@@ -118,7 +118,7 @@ void coremu_init(int smp_cpus, msg_handler msg_fn)
     sigfillset(&act.sa_mask);
     act.sa_flags = 0;
     act.sa_flags |= SA_SIGINFO;
-    act.sa_sigaction = msg_fn;
+    act.sa_sigaction = coremu_cpu_signal_handler;
 
     sigaction(COREMU_SIGNAL, &act, NULL);
 }
@@ -129,6 +129,7 @@ CMCore *coremu_core_init(int id, void* opaque)
 
     /* step 1: get the core */
     CMCore *core = &cm_cores[id];
+    cm_core_self = core;
 
     /* step 2: init the hardware event queue and its lock */
     err = pthread_mutexattr_init(&attr);
@@ -137,15 +138,7 @@ CMCore *coremu_core_init(int id, void* opaque)
     err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
     cm_assert((err == 0), "cannot set mutex type");
 
-#ifdef INTR_LOCK_FREE
     core->intr_queue = new_queue();
-#elif defined(INTR_LOCK)
-    TAILQ_INIT(&core->intr_queue);
-    pthread_mutex_init(&core->intr_lock, &attr);
-    core->intr_count = 0;
-#else
-# error "No HWE queue?"
-#endif
 
     /* step 3: init opaque state */
     core->opaque = opaque;
@@ -155,9 +148,6 @@ CMCore *coremu_core_init(int id, void* opaque)
 
     /* reset the profile */
     core->core_profile.retry_num_addr = &cm_retry_num;
-
-    /* step 5: put this core into cores tailq */
-    TAILQ_INSERT_TAIL(&coremu_cores, core, cores);
 
     return core;
 }
@@ -171,8 +161,7 @@ void coremu_run_all_cores(thr_start_routine thr_fn, void *arg)
     pthread_attr_setdetachstate(&thr_attr, PTHREAD_CREATE_JOINABLE);
     pthread_attr_setschedpolicy(&thr_attr, SCHED_RR);
 
-    TAILQ_FOREACH(cur, &coremu_cores, cores)
-    {
+    for (cur = cm_cores; cur != cm_cores + cm_smp_cpus; cur++){
         err = pthread_create(&cur->coreid, &thr_attr, thr_fn, arg);
         cm_assert((! err), "pthread creation fails...");
     }
@@ -189,52 +178,23 @@ int coremu_init_done_p()
     return done_flag;
 }
 
-CMCore *coremu_get_first_core()
-{
-    cm_assert((! TAILQ_EMPTY(&coremu_cores)), "NO cores?!");
-    return TAILQ_FIRST(&coremu_cores);
-}
-
-CMCore *coremu_get_self()
-{
-    cm_assert((! TAILQ_EMPTY(&coremu_cores)), "NO cores?!");
-    coremu_assert_core_thr();
-
-    if(! core_self) {
-        core_self = coremu_get_core(pthread_self());
-    }
-
-    return core_self;
-}
-
 void coremu_assert_core_thr()
 {
-    if(pthread_self() == coremu_get_hw_id()) {
+    if (pthread_self() == coremu_get_hw_id()) {
         coremu_backtrace();
         assert(0);
     }
     return;
 }
 
-CMCore *coremu_get_core(core_t coreid)
+inline CMCore *coremu_get_core(int coreid)
 {
-    cm_assert((! TAILQ_EMPTY(&coremu_cores)),
-              "NO cores?!");
-
-    CMCore *cur;
-    TAILQ_FOREACH(cur, &coremu_cores, cores) {
-        if(cur->coreid == coreid) {
-            return cur;
-        }
-    }
-
-    cm_print("tid[%lu] fatal error", (unsigned long int) coremu_gettid());
-    assert(0);
+    return &cm_cores[coreid];
 }
 
-cores_head_t *coremu_get_core_tailq(void)
+inline CMCore *coremu_get_core_self()
 {
-    return &coremu_cores;
+    return cm_core_self;
 }
 
 void coremu_wait_init(void)
@@ -251,78 +211,6 @@ int coremu_wait_tid(CMCore *core, void **val_ptr)
     return pthread_join(core->coreid, val_ptr);
 }
 
-void coremu_dump_prio()
-{
-    CMCore *cur = NULL;
-    cores_head_t *core_head = coremu_get_core_tailq();
-
-    int policy;
-    struct sched_param param;
-    TAILQ_FOREACH(cur, core_head, cores)
-    {
-        assert(! pthread_getschedparam(cur->coreid,
-                                       &policy, &param));
-        assert(policy == CM_SCHED_POLICY);
-
-        cm_print("core[%lu]: policy[%d], prio[%d]",
-                 cur->coreid, policy, param.sched_priority);
-    }
-}
-
-void coremu_dump_core_profiling_info(void)
-{
-    CMCore *cur = NULL;
-    cores_head_t *core_head = coremu_get_core_tailq();
-
-    TAILQ_FOREACH(cur, core_head, cores)
-    {
-        fprintf(stderr, "(core[%lu])", cur->coreid);
-        coremu_dump_profile(&cur->core_profile, "");
-    }
-}
-
-void coremu_dump_profile(cm_profile_t *profile, const char *msg)
-{
-    fprintf(stderr,
-            "%s\t%lu/%lu\t%lu/%lu\t%lu/%lu\t%lu/%lu\t%lu/%lu\t%lu/%lu\t%lu/%lu\t%lu/%lu\n",
-            msg,
-            profile->intr_send[I8259_EVENT], profile->intr_recv[I8259_EVENT],
-            profile->intr_send[IOAPIC_EVENT], profile->intr_recv[IOAPIC_EVENT],
-            profile->intr_send[IPI_EVENT], profile->intr_recv[IPI_EVENT],
-            profile->intr_send[DIRECT_INTR_EVENT], profile->intr_recv[DIRECT_INTR_EVENT],
-            profile->intr_send[CPU_EXIT_EVENT], profile->intr_recv[CPU_EXIT_EVENT],
-            profile->intr_send[TB_INVAL_EVENT], profile->intr_recv[TB_INVAL_EVENT],
-            profile->intr_send[TB_INVAL_FAST_EVENT], profile->intr_recv[TB_INVAL_FAST_EVENT],
-            profile->intr_send[CPU_SHUTDOWN_EVENT], profile->intr_recv[CPU_SHUTDOWN_EVENT]);
-    fflush(stderr);
-}
-
-void coremu_dump_timer_debug_info(cm_timer_debug_t *debug_info, const char *msg)
-{
-    fprintf(stderr, 
-            "%sLAPIC TIMER:\nCREATED: %d\nCNT:       %ld\nREARM CNT: %ld\n", 
-             msg, debug_info->created_timer, debug_info->lapic_timer_cnt, debug_info->rearm_cnt);   
-
-     fprintf(stderr, 
-            "Last Flag: 0x%x\nLast Current Time: 0x%lx\nLast Expire  Time: 0x%lx\n", 
-             debug_info->last_flags, debug_info->last_current_time, debug_info->last_expire_time); 
-
-    
-    fflush(stderr);
-}
-
-
-void coremu_dump_debug_info(void)
-{
-    CMCore *cur = NULL;
-    cores_head_t *core_head = coremu_get_core_tailq();
-
-    TAILQ_FOREACH(cur, core_head, cores)
-    {
-       fprintf(stderr,"CPU[%d] Debug Info\n", cur->serial);
-       coremu_dump_timer_debug_info(&cur->debug_info, " ");
-    }
-}
 void coremu_core_exit(void *value_ptr)
 {
     pthread_exit(value_ptr);
@@ -330,7 +218,7 @@ void coremu_core_exit(void *value_ptr)
 
 void coremu_pause_core()
 {
-    CMCore *self = coremu_get_self();
+    CMCore *self = coremu_get_core_self();
     coremu_mutex_lock(&pause_mutex,"coremu_pause_core");
     if(self->state==STATE_RUN){
         self->state=STATE_PAUSE;

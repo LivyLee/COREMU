@@ -37,8 +37,6 @@
 #define COREMU_SIGNAL           (SIGRTMIN + 3)    /* COREMU Interrupts */
 #define COREMU_AIO_SIG          (SIGRTMIN+4)      /* Aynchrous I/O (e.g. DMA) */
 
-extern int cm_profiling_p;
-
 extern __thread unsigned long int cm_retry_num;
 /**
  * Init the whole COREMU library for multicore
@@ -47,7 +45,7 @@ extern __thread unsigned long int cm_retry_num;
  * @smp_cpus: number of cores.
  * @msg_fn: COREMU signal handler in guest
  *          system emulator. */
-void coremu_init(int smp_cpus, msg_handler msg_fn);
+void coremu_init(int smp_cpus);
 
 /**
  * Whether COREMU has started all the cores to run. */

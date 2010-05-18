@@ -28,12 +28,12 @@
 #define DEBUG_COREMU    0
 #define VERBOSE_COREMU  1
 
+#include <signal.h>
 #include "coremu-utils.h"
-#define NEED_CPU_H
-#include "target-qemu.h"
 #include "coremu-hw.h"
 #include "coremu-intr.h"
 #include "coremu-sched.h"
+#include "coremu-core.h"
 
 #define INTR_NUM_THRESHOLD   50    /* notify a CORE if many pending signals */
 #define INTR_TIME_THRESHOLD  1000   /* 1ms */
@@ -44,74 +44,29 @@ cm_profile_t hw_profile;
 int cm_adaptive_intr_delay;
 
 /* the step of intr delay, the signal accept time must be
- * more than cm_intr_delay_step * 10us
- */
+ * more than cm_intr_delay_step * 10us */
 int cm_intr_delay_step;
 
-
-/* Signal-unsafe. block the signal in the lock free function */
-void coremu_put_intr(void *e, size_t size, CMCore *core)
+/* Insert an intrrupt into queue.
+ * Signal-unsafe. block the signal in the lock free function */
+static inline void coremu_put_intr(CMCore *core, void *e)
 {
-    cm_intr_t *cm_intr;
-    cm_intr = qemu_mallocz(sizeof(cm_intr_t));
-
-    void *opaque = qemu_mallocz(size);
-    memcpy(opaque, e, size);
-
-    cm_intr->opaque = opaque;
-
-#ifdef INTR_LOCK_FREE
-
-    enqueue(core->intr_queue, (uint64_t) cm_intr);
-
-#elif defined(INTR_LOCK)
-
-    coremu_mutex_lock(&core->intr_lock,
-                      "cannot acquire hw event queue lock");
-    TAILQ_INSERT_TAIL(&core->intr_queue, cm_intr, intr);
-    core->intr_count++;
-    coremu_mutex_unlock(&core->intr_lock,
-                        "cannot release hw event queue lock");
-
-#else
-# error "No interrupt queue?"
-#endif
+    enqueue(core->intr_queue, (long) e);
 }
 
-/* Signal-unsafe. block the signal in the lock free function */
-void *coremu_get_intr(CMCore *core)
+/* Get the first interrupt from queue.
+ * Signal-unsafe. block the signal in the lock free function */
+static void *coremu_get_intr(CMCore *core)
 {
-    cm_intr_t *cm_intr;
-    void *opaque;
-    
-    if(! coremu_intr_p(core))
+    if (!coremu_intr_p(core))
         return NULL;
 
-#ifdef INTR_LOCK_FREE
+    unsigned long intr;
+    /* XXX the queue implementation may have bug.
+     * It shouldn't be empty when there're pending interrupts. */
+    assert(dequeue(core->intr_queue, &intr));
 
-    int ret; uint64_t tmp;
-    ret = dequeue(core->intr_queue, &tmp);
-    assert(ret);
-    cm_intr = (cm_intr_t *)tmp;
-
-#elif defined(INTR_LOCK)
-
-    coremu_mutex_lock(&core->intr_lock,
-                      "cannot acquire hw event queue lock");
-    cm_intr = TAILQ_FIRST(&core->intr_queue);
-    TAILQ_REMOVE(&core->intr_queue, cm_intr, intr);
-    core->intr_count--;
-    coremu_mutex_unlock(&core->intr_lock,
-                        "cannot release hw event queue lock");
-
-#else
-# error "No interrupt queue?"
-#endif
-
-    opaque = cm_intr->opaque;
-    qemu_free(cm_intr);
-    
-    return opaque;
+    return (void *)intr;
 }
 
 uint64_t coremu_intr_get_size(CMCore *core)
@@ -121,7 +76,28 @@ uint64_t coremu_intr_get_size(CMCore *core)
 
 int coremu_intr_p(CMCore *core)
 {
-    return coremu_intr_get_size(core);
+    return coremu_intr_get_size(core) != 0;
+}
+
+event_handler_t event_handler;
+void coremu_register_event_handler(event_handler_t fn)
+{
+    event_handler = fn;
+}
+
+event_notifier_t event_notifier;
+void coremu_register_event_notifier(event_notifier_t fn)
+{
+    event_notifier = fn;
+}
+
+void coremu_receive_intr()
+{
+    while (coremu_intr_p(coremu_get_core_self())) {
+        /* call registed interrupt handler */
+        if (event_handler)
+            event_handler(coremu_get_intr(coremu_get_core_self()));
+    }
 }
 
 /**
@@ -130,26 +106,22 @@ int coremu_intr_p(CMCore *core)
  * But this mechanism seems to be wonderful when number of emulated
  * cores is more than 128 (test enviroment R900)
  */
-void coremu_notify_intr(void *e, size_t size, CMCore *core)
+void coremu_send_intr(void *e, int coreid)
 {
     uint64_t pending_intr;
+    CMCore *core = coremu_get_core(coreid);
 
-    coremu_put_intr(e, size, core);
-
+    coremu_put_intr(core, e);
     pending_intr = coremu_intr_get_size(core);
 
     /*  here need to do somethings that make the thresh hold to be  more smart!!!*/
-    //	if(pending_intr > 10)
-    //		core->intr_thresh_hold = 0;
-
-    if(core->sig_pending) {
-        if(core->intr_thresh_hold < 100)
+    if (core->sig_pending) {
+        if (core->intr_thresh_hold < 100)
             core->intr_thresh_hold += 10;
         return;
     }
 
-
-    if(!cm_adaptive_intr_delay || core->state==STATE_HALT
+    if (!cm_adaptive_intr_delay || core->state==STATE_HALT
             || pending_intr > core->intr_thresh_hold
             || (core->state == STATE_PAUSE && pending_intr > 10)) {
         core->sig_pending = 1;
@@ -160,43 +132,34 @@ void coremu_notify_intr(void *e, size_t size, CMCore *core)
     }
 }
 
-/* broadcast event to core cores */
-void coremu_broadcast_intr(void *e, size_t size)
+void coremu_cpu_signal_handler(int signo, siginfo_t *info, void *context)
 {
-    cores_head_t *head = coremu_get_core_tailq();
-    cm_assert(! TAILQ_EMPTY(head), "empty hw event queue?!");
+    CMCore *core = coremu_get_core_self();
 
-    /* XXX: cannot free the event if we append the same
-       event to event queue of each thread.
+    if (cm_adaptive_intr_delay) {
+        uint64_t tsc = read_host_tsc();
 
-       Currently solve this problem by duplicating event
-       to each queue. Better idea for this ??? */
+        if (core->time_stamp) {
+            //if((tsc - core->time_stamp) < ( R900_CFREQ/100000*4))
+            if ((tsc - core->time_stamp) <
+                    (5000 * (cm_smp_cpus + coremu_get_hostcpu() - 1)/coremu_get_hostcpu())) {
+                if (core->intr_thresh_hold < 100)
+                    core->intr_thresh_hold += 10;
+            } else if ((tsc - core->time_stamp) >
+                    (500000 * (cm_smp_cpus + coremu_get_hostcpu() - 1)/coremu_get_hostcpu())) {
+                core->intr_thresh_hold = 0;
+            } else {
+                core->intr_thresh_hold -= 1;
+            }
+        }
 
-    CMCore *cur;
+        core->time_stamp = tsc;
+    }
 
-    TAILQ_FOREACH(cur, head, cores) {
-        coremu_notify_intr(e, size, cur);
+    coremu_thread_setpriority(PRIO_PROCESS, 0, 0);
+
+    if (event_notifier) {
+        event_notifier();
     }
 }
-
-/* broadcast event to other cores */
-void coremu_broadcast_intr_other(void *e, size_t size)
-{
-    cores_head_t *head = coremu_get_core_tailq();
-    cm_assert(! TAILQ_EMPTY(head), "empty hw event queue?!");
-
-    /* XXX: cannot free the event if we append the same
-       event to event queue of each thread.
-
-       Currently solve this problem by duplicating event
-       to each queue. Better idea for this ??? */
-
-    CMCore *self, *cur;
-    self = coremu_get_self();
-    TAILQ_FOREACH(cur, head, cores) {
-        if(cur != self)
-            coremu_notify_intr(e, size, cur);
-    }
-}
-
 
