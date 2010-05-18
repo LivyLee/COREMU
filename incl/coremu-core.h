@@ -48,9 +48,8 @@ CMCore *coremu_get_core(int coreid);
 /* Return the core data for the core itself. */
 CMCore *coremu_get_core_self();
 
-/**
- * Exit current core with return value pointer VALUE_PTR.
- * @note: the calling thread must NOT be hw thread...  */
+/* Exit current core with return value pointer VALUE_PTR.
+ * NOTE: the calling thread must NOT be hw thread...  */
 void coremu_core_exit(void *value_ptr);
 
 void coremu_pause_core(void);
@@ -59,8 +58,7 @@ void coremu_restart_all_cores(void);
 
 void coremu_wait_pause(CMCore *core);
 
-/**
- * Wait on a specfic core until it exits... */
+/* Wait on a specfic core until it exits... */
 int coremu_wait_tid(CMCore *coreid, void **val_ptr);
 
 #endif /* _COREMU_CORE_H */

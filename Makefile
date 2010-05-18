@@ -25,7 +25,6 @@ coremu: $(objects) $(programs)
 	@echo $LDFLAGS
 
 LIBOBJS =  $(OBJDIR)/main/coremu-core.o
-LIBOBJS += $(OBJDIR)/main/coremu-bus-lock.o
 LIBOBJS += $(OBJDIR)/main/coremu-hw.o
 LIBOBJS += $(OBJDIR)/main/coremu-hw-backend.o
 LIBOBJS += $(OBJDIR)/main/coremu-hw-frontend.o

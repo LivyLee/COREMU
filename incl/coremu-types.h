@@ -33,8 +33,6 @@
 #define true 1
 #define false 0
 
-typedef void (msg_handler) (int signo, siginfo_t *info, void *context);
-
 typedef void *(thr_start_routine)(void *);
 
 typedef pthread_t core_t;
