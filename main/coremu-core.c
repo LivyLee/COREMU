@@ -146,9 +146,6 @@ CMCore *coremu_core_init(int id, void* opaque)
     /* step 4: set core state to run */
     core->state = STATE_RUN;
 
-    /* reset the profile */
-    core->core_profile.retry_num_addr = &cm_retry_num;
-
     return core;
 }
 

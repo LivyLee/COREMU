@@ -45,19 +45,6 @@ typedef uint64_t cm_ram_addr_t;        /* XXX: kqemu fails for this? */
 
 /* ************************* Complex types ************************* */
 
-/* Interrupt types */
-typedef enum cm_event {
-    I8259_EVENT,
-    IOAPIC_EVENT,
-    IPI_EVENT,
-    DIRECT_INTR_EVENT,
-    CPU_EXIT_EVENT,
-    TB_INVAL_EVENT,
-    TB_INVAL_FAST_EVENT,
-    CPU_SHUTDOWN_EVENT,
-    CM_INTR_CNT,                         /*  #COREMU interrupts */
-} cm_event_t;
-
 /* State of COREMU CORE */
 typedef enum cm_core_state {
     STATE_RUN,                           /* NOT halt */
@@ -80,31 +67,12 @@ typedef enum sched_hw_event {
     EVENT_HW_CNT,
 } sched_hw_event_t;
 
-/* interrupt type (device interrupt, IPI, etc.) */
-typedef struct cm_intr_s {
-    const char *name;                    /* used for debug */
-    uint8_t type;                        /* type of the hardware event */
-
-    void *opaque;                        /* emulator specific data */
-
-#if INTR_LOCK
-    TAILQ_ENTRY(cm_intr_s) intr;         /* TAILQ entry: one interrupt */
-#endif
-} cm_intr_t;
-
 /* local timer type */
 typedef struct cm_local_alarm_s {
     pthread_t tid;                       /* the thread id */
     int signo;                           /* the signo to send to each thread */
     void *opaque;                        /* qemu_alarm_timer for qemu */
 } cm_local_alarm_t;
-
-typedef struct cm_profile_s {
-    /* These counter are indexed by cm_event enumeration*/
-    uint64_t intr_send[CM_INTR_CNT];     /* number of COREMU interrupts appended in the queue */
-    uint64_t intr_recv[CM_INTR_CNT];     /* number of COREMU interrupts received by cores */
-    uint64_t *retry_num_addr; 
-} cm_profile_t;
 
 typedef struct cm_timer_debug_s {
    uint64_t lapic_timer_cnt;
@@ -115,35 +83,21 @@ typedef struct cm_timer_debug_s {
    uint64_t last_current_time;
 } cm_timer_debug_t;
 
-/* core tailq type */
-TAILQ_HEAD(cores_head, CMCore);
-typedef struct cores_head cores_head_t;
-
 /* processor type */
 typedef struct CMCore {
     uint32_t serial;                     /* number start from 0 */
     core_t coreid;                       /* ID of the core */
     tid_t tid;                           /* kernel process id */
-    TAILQ_ENTRY(CMCore) cores;        /* cores are kept in a tailq */
 
     cm_local_alarm_t *local_alarm;       /* local alarm timer for each core */
 
-#ifdef INTR_LOCK_FREE
     queue_t *intr_queue;                 /* interrupt queue for the core */
     uint64_t time_stamp;                 /* recode the time of intr pending */
-    uint64_t intr_thresh_hold;                /* the thresh hold for intr sending */
-    uint8_t sig_pending;                    /* if has signal not receive */
-#elif defined(INTR_LOCK)
-    TAILQ_HEAD(, cm_intr_s) intr_queue;  /* interrupt queue for the core */
-    uint64_t intr_count;                 /* #pending interrupts */
-    pthread_mutex_t intr_lock;           /* lock for the interrupt queue */
-#else
-# error "No HWE queue?"
-#endif
+    uint64_t intr_thresh_hold;           /* the thresh hold for intr sending */
+    uint8_t sig_pending;                 /* if has signal not receive */
 
     void *opaque;                        /* CPUState of QEMU */
     cm_core_state_t state;               /* state of the CORE */
-    cm_profile_t core_profile;           /* CPU profile */
     cm_timer_debug_t debug_info;         /* Used for timer debug */
 } CMCore;
 

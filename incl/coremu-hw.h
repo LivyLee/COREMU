@@ -48,9 +48,6 @@
 #define IOREQ_WORD              1
 #define IOREQ_LONG              2
 
-/* ******** hardware profile ******** */
-extern cm_profile_t hw_profile;
-
 /* ******** External states ******** */
 void coremu_init_hw(int smp_cpus);
 void coremu_signal_hw_thr(int signo);

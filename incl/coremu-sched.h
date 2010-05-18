@@ -33,22 +33,22 @@
 #include <sched.h>
 
 /* controlling scheduling */
-#define CM_ENABLE_SCHED  0
+#define CM_ENABLE_SCHED
 
-#define CM_ENABLE_BIND_CORE 1
+#define CM_ENABLE_BIND_CORE
 
 /* bind the vcpu to physical cpu */
-#define CM_BIND_SAME_CORE 1
+#define CM_BIND_SAME_CORE
 
 /* bind the near vcpus to the same physcal cpu */
-#define CM_BIND_SAME_CORE2 0
+/*#define CM_BIND_SAME_CORE2*/
 
-#define CM_BIND_SOCKET 0
+/*#define CM_BIND_SOCKET*/
 
 /* halt method: nanosleep, sched_yield or hybrid */
-#define HALT_NANOSLEEP  1
-#define HALT_YIELD      0
-#define HALT_HYBRID     0
+#define HALT_NANOSLEEP
+/*#define HALT_YIELD*/
+/*#define HALT_HYBRID*/
 
 /* scheduling states */
 #define STATE_CPU        0

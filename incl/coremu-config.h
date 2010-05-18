@@ -60,24 +60,6 @@
 # endif
 #endif
 
-/* There are 2 choices for handling queueing interrupt:
- * 1. use nonblocking queue
- * 2. use a tail queue with a big lock
- */
-
-#define INTR_LOCK_FREE                  /* lock free hardware event queue */
-//#define INTR_LOCK                       /* tailq+locking for hardware events */
-
-#ifdef INTR_LOCK_FREE
-# ifdef INTR_LOCK
-#  error "Lock free interrupt queue enabled. Disable INTR_LOCK"
-# endif
-#else  /* ! HWE_LOCK_FREE */
-# ifndef INTR_LOCK
-#  error "MUSTchoose one in INTR_LOCK_FREE and INTR_LOCK"
-# endif
-#endif
-
 /* There are 2 choices for handling synchrous I/O:
  * 1. use nonblocking queue to serialize all requests.
  * 2. only use a lock to serialize request on each processor.

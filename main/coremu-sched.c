@@ -25,10 +25,10 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#define DEBUG_COREMU     0
-#define VERBOSE_COREMU   0
+/*#define DEBUG_COREMU*/
+/*#define VERBOSE_COREMU*/
+/*#define DEBUG_CM_SCHED*/
 
-#define DEBUG_CM_SCHED   0
 #include "coremu-utils.h"
 #include "coremu-core.h"
 #include "coremu-sched.h"
@@ -150,7 +150,7 @@ static void topology_bind_core()
     } else {
         index = (self->serial % cores);
     }
-#elif CM_BIND_SAME_CORE
+#elif defined(CM_BIND_SAME_CORE)
        index = (self->serial % cores);
 #endif
 
@@ -230,7 +230,7 @@ void coremu_init_sched_core()
     /* display the scheduling info */
     display_thread_sched_attr("CORE thread scheduler settings:");
 
-#if CM_ENABLE_BIND_CORE
+#ifdef CM_ENABLE_BIND_CORE
     /* bind thread to a specific core */
     topology_bind_core();
 #endif
@@ -245,7 +245,7 @@ void coremu_init_sched_core()
    Xi Wu (wuxi@fudan.edu.cn) */
 void coremu_sched(sched_event_t e)
 {
-#if DEBUG_CM_SCHED
+#ifdef DEBUG_CM_SCHED
     cm_assert((init_all_ok == 1),
               "scheduling support not initialized?");
     cm_assert(cur_state < STATE_CNT,
@@ -253,7 +253,7 @@ void coremu_sched(sched_event_t e)
     coremu_assert_not_hw_thr("hw thr call scheduling?");
 #endif
 
-#if CM_ENABLE_SCHED
+#ifdef CM_ENABLE_SCHED
     switch(e) {
     case EVENT_HALTED:
     {
@@ -280,7 +280,7 @@ void coremu_sched(sched_event_t e)
 
 void coremu_hw_sched(sched_hw_event_t e)
 {
-#if CM_ENABLE_SCHED
+#ifdef CM_ENABLE_SCHED
     static int hw_high_prio_p = 0;
     switch(e) {
     case EVENT_NO_IOREQ:
