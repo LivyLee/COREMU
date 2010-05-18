@@ -34,7 +34,7 @@
 
 #include "coremu-atomic.h"
 
-typedef uint64_t data_type;
+typedef unsigned long data_type;
 typedef struct node_s node_t;
 typedef struct pointer_s pointer_t;
 typedef struct queue_s queue_t;
@@ -46,7 +46,7 @@ struct pointer_s {
 
 struct node_s {
     pointer_t next;            /* the next node, together with the tag */
-    data_type value;           /* now a simple 64-bit int */
+    data_type value;           /* an integer which can hold a pointer */
 };
 
 struct queue_s {
