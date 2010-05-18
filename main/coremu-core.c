@@ -89,7 +89,7 @@ void coremu_init(int smp_cpus, msg_handler msg_fn)
      /**
       * we define the step is 1, if the number of cores
       * is not more than 128
-      */    
+      */
      if(cm_adaptive_intr_delay)
         cm_intr_delay_step = (smp_cpus + 127)/128;
 
