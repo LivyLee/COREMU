@@ -36,19 +36,19 @@ static inline void *oom_check(void *ptr)
     return ptr;
 }
 
-void *cm_malloc(size_t size)
+void *coremu_malloc(size_t size)
 {
     return oom_check(malloc(size));
 }
 
-void *cm_mallocz(size_t size)
+void *coremu_mallocz(size_t size)
 {
     void *p = cm_malloc(size);
     memset(p, 0, size);
     return p;
 }
 
-void cm_free(void *ptr)
+void coremu_free(void *ptr)
 {
     free(ptr);
 }

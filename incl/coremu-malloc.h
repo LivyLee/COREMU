@@ -25,10 +25,10 @@
 #ifndef _COREMU_MALLOC_H
 #define _COREMU_MALLOC_H
 
-void *cm_malloc(size_t size);
-void *cm_realloc(void *ptr, size_t size);
-void *cm_mallocz(size_t size);
-void cm_free(void *ptr);
+void *coremu_malloc(size_t size);
+void *coremu_realloc(void *ptr, size_t size);
+void *coremu_mallocz(size_t size);
+void coremu_free(void *ptr);
 
 #endif /* _COREMU_MALLOC_H */
 
