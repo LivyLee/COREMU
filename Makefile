@@ -32,6 +32,7 @@ LIBOBJS += $(OBJDIR)/main/coremu-hw-frontend.o
 LIBOBJS += $(OBJDIR)/main/coremu-sched.o
 LIBOBJS += $(OBJDIR)/main/coremu-timer.o
 LIBOBJS += $(OBJDIR)/main/coremu-intr.o
+LIBOBJS += $(OBJDIR)/main/coremu-malloc.o
 LIBOBJS += $(OBJDIR)/main/ms-queue.o
 LIBOBJS += $(OBJDIR)/main/timevar.o
 LIBOBJS += $(OBJDIR)/main/tools.o

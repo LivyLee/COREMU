@@ -10,7 +10,7 @@ COREMUDIR := $(CURDIR)
 AIOLIB 	  := -lrt
 
 # Replace this with qemu src path
-QEMUSRC := /home/alex/programming/git-qemu
+QEMUSRC := /home/tiger/project/coremu/coremu-open-source/qemu-git
 # Replace this with target
 TARGET := x86_64
 
