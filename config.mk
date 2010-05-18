@@ -9,10 +9,9 @@ COREMUDIR := $(CURDIR)
 
 AIOLIB 	  := -lrt
 
-# Replace this with qemu src path
-QEMUSRC := /home/tiger/project/coremu/coremu-open-source/qemu-git
-# Replace this with target
-TARGET := x86_64
+# Include a configure generated file.
+# So configure will not change this file and mess up with git
+include coremu.mk
 
 QEMUOBJ_DIR := obj/qemu
 

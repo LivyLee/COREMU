@@ -16,8 +16,8 @@ coremuroot=`pwd`
 mkdir -p obj/qemu
 mkdir -p bin/qemu
 
-sed -i -e "s,^QEMUSRC :=.*,QEMUSRC := ${qemusrc},g" config.mk
-sed -i -e "s,^TARGET :=.*,TARGET := ${target},g" config.mk
+echo "QEMUSRC := ${qemusrc}" > coremu.mk
+echo "TARGET := ${target}" >> coremu.mk
 # Modify qemu's makefile to link with coremu
 sed -i -e "s,^COREMU_LIB =.*,COREMU_LIB = ${coremuroot}/obj/libcoremu.a," ${qemusrc}/Makefile.target
 
