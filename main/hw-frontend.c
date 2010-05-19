@@ -26,8 +26,8 @@
 
 #define _GNU_SOURCE
 
-#define DEBUG_COREMU          0
-#define VERBOSE_COREMU        1
+/*#define DEBUG_COREMU*/
+#define VERBOSE_COREMU
 
 #include "coremu-utils.h"
 #include "coremu-hw.h"

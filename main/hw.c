@@ -24,8 +24,8 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#define DEBUG_COREMU     0
-#define VERBOSE_COREMU   1
+/*#define DEBUG_COREMU*/
+#define VERBOSE_COREMU
 #define _GNU_SOURCE
 
 #include "coremu-utils.h"
