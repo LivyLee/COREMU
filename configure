@@ -28,7 +28,6 @@ ${qemusrc}/configure --prefix=${coremuroot}/bin/qemu \
     --disable-kvm \
     --disable-docs \
     --extra-cflags="-I${coremuroot}/incl \
-            -I${coremuroot}/main \
             -I${coremuroot}/obj/qemu \
             -I${coremuroot}/obj/qemu/${target}-softmmu" \
     --target-list="${target}-softmmu" \

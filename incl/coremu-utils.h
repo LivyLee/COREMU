@@ -52,9 +52,6 @@
 /* libtopology suppport */
 #include <topology.h>
 
-/* QEMU */
-#include <qemu-common.h>
-
 #include "timevar.h"
 #include "sched.h"
 
