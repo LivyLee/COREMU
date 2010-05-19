@@ -24,14 +24,14 @@ install: qemu-install
 coremu: $(objects) $(programs)
 	@echo $LDFLAGS
 
-LIBOBJS =  $(OBJDIR)/main/coremu-core.o
-LIBOBJS += $(OBJDIR)/main/coremu-hw.o
-LIBOBJS += $(OBJDIR)/main/coremu-hw-backend.o
-LIBOBJS += $(OBJDIR)/main/coremu-hw-frontend.o
-LIBOBJS += $(OBJDIR)/main/coremu-sched.o
-LIBOBJS += $(OBJDIR)/main/coremu-timer.o
-LIBOBJS += $(OBJDIR)/main/coremu-intr.o
-LIBOBJS += $(OBJDIR)/main/coremu-malloc.o
+LIBOBJS =  $(OBJDIR)/main/core.o
+LIBOBJS += $(OBJDIR)/main/hw.o
+LIBOBJS += $(OBJDIR)/main/hw-backend.o
+LIBOBJS += $(OBJDIR)/main/hw-frontend.o
+LIBOBJS += $(OBJDIR)/main/sched.o
+LIBOBJS += $(OBJDIR)/main/timer.o
+LIBOBJS += $(OBJDIR)/main/intr.o
+LIBOBJS += $(OBJDIR)/main/malloc-helper.o
 LIBOBJS += $(OBJDIR)/main/ms-queue.o
 LIBOBJS += $(OBJDIR)/main/timevar.o
 LIBOBJS += $(OBJDIR)/main/tools.o
