@@ -19,7 +19,7 @@ QEMUOBJ_DIR := obj/qemu
 QEMUSRC_TARGET := $(QEMUSRC)/target-$(TARGET)
 QEMUOBJ_DIR_TARGET := $(QEMUOBJ_DIR)/$(TARGET)-softmmu
 
-CFLAGS    := -pthread -O2 -Wall -Wfatal-errors -g -Iincl -I$(QEMUSRC) -I$(QEMUSRC_TARGET) -I$(QEMUOBJ_DIR) -I$(QEMUOBJ_DIR_TARGET)
+CFLAGS    := -pthread -O2 -Wall -Wfatal-errors -g -Iincl -Imain -I$(QEMUSRC) -I$(QEMUSRC_TARGET) -I$(QEMUOBJ_DIR) -I$(QEMUOBJ_DIR_TARGET)
 LDFLAGS   := -pthread $(AIOLIB) -O2 -g -Wall -Wfatal-errors --warn-error -rdynamic $(pkg-config --libs topology)
 
 # libtopology support

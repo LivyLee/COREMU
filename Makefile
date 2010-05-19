@@ -60,6 +60,7 @@ clean:
 
 distclean:
 	$(RM) -rf obj/ bin/
+	$(RM) -rf coremu.mk
 
 .PHONY: distclean clean all qemu qemu-install install coremu
 

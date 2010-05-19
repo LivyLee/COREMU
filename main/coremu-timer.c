@@ -26,11 +26,11 @@
 
 #define _GNU_SOURCE
 
-#define DEBUG_COREMU              0
-#define VERBOSE_COREMU            1
-#define BIND_TIMER_THR            0      /* bind timer thread to a specific CORE? */
-#define TIMER_PERIODIC_SLEEP      1      /* sleep sometime instead of busy loop? */
-#define LAPIC_TIME_DEBUG          0
+/*#define DEBUG_COREMU*/
+#define VERBOSE_COREMU
+/*#define BIND_TIMER_THR*/        /* bind timer thread to a specific CORE? */
+#define TIMER_PERIODIC_SLEEP      /* sleep sometime instead of busy loop? */
+/*#define LAPIC_TIME_DEBUG*/
 
 #include "coremu-utils.h"
 #include "coremu-timer.h"
