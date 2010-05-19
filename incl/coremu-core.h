@@ -32,10 +32,10 @@
  * a emulator specific data OPAQUE. */
 CMCore *coremu_core_init(int id, void *opaque);
 
-/**
- * Run all cores with THR_FN as the start function, with ARG
- * the parameter passed. */
-void coremu_run_all_cores(thr_start_routine thr_fn, void *arg);
+/* Run all cores with THR_FN as the start function.
+ * The thread function will be passed the opaque object when calling
+ * coremu_core_init. */
+void coremu_run_all_cores(thr_start_routine thr_fn);
 
 /* assert the cur thr is a core thr
  * i.e. its  coremu core object is not nil */

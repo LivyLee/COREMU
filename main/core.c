@@ -149,7 +149,7 @@ CMCore *coremu_core_init(int id, void* opaque)
     return core;
 }
 
-void coremu_run_all_cores(thr_start_routine thr_fn, void *arg)
+void coremu_run_all_cores(thr_start_routine thr_fn)
 {
     CMCore *cur;
     int err;
@@ -159,7 +159,8 @@ void coremu_run_all_cores(thr_start_routine thr_fn, void *arg)
     pthread_attr_setschedpolicy(&thr_attr, SCHED_RR);
 
     for (cur = cm_cores; cur != cm_cores + cm_smp_cpus; cur++){
-        err = pthread_create(&cur->coreid, &thr_attr, thr_fn, arg);
+        err = pthread_create(&cur->coreid, &thr_attr, thr_fn,
+                cur->opaque);
         cm_assert((! err), "pthread creation fails...");
     }
 
