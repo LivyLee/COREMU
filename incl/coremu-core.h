@@ -27,9 +27,8 @@
 
 #define COREMU_HLT_TICK   100     /* virtual core sleeps 1 second if HLT executed */
 
-/**
- * Init a core in COREMU. Basically, coremu core contains
- * a emulator specific data OPAQUE. */
+/* Init a core in COREMU. Basically, coremu core contains
+ * a emulator specific data opaque. */
 CMCore *coremu_core_init(int id, void *opaque);
 
 /* Run all cores with THR_FN as the start function.
@@ -40,13 +39,6 @@ void coremu_run_all_cores(thr_start_routine thr_fn);
 /* assert the cur thr is a core thr
  * i.e. its  coremu core object is not nil */
 void coremu_assert_core_thr(void);
-
-extern int cm_smp_cpus;
-/* Return the specified core object. */
-CMCore *coremu_get_core(int coreid);
-
-/* Return the core data for the core itself. */
-CMCore *coremu_get_core_self();
 
 /* Exit current core with return value pointer VALUE_PTR.
  * NOTE: the calling thread must NOT be hw thread...  */

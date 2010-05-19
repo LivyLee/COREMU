@@ -33,7 +33,7 @@
 #include "coremu-hw.h"
 #include "coremu-intr.h"
 #include "coremu-sched.h"
-#include "coremu-core.h"
+#include "core.h"
 
 #define INTR_NUM_THRESHOLD   50    /* notify a CORE if many pending signals */
 #define INTR_TIME_THRESHOLD  1000   /* 1ms */
@@ -77,7 +77,6 @@ static void *coremu_get_intr(CMCore *core)
     return (void *)intr;
 }
 
-
 event_handler_t event_handler;
 void coremu_register_event_handler(event_handler_t fn)
 {
@@ -100,12 +99,10 @@ void coremu_receive_intr()
     }
 }
 
-/**
- * Send an interrupt and notify the accept core
+/* Send an interrupt and notify the accept core
  * Here we use apdaptive signal delay mechanism
  * But this mechanism seems to be wonderful when number of emulated
- * cores is more than 128 (test enviroment R900)
- */
+ * cores is more than 128 (test enviroment R900) */
 void coremu_send_intr(void *e, int coreid)
 {
     cm_assert(e, "interrupt argument is NULL");
@@ -139,7 +136,7 @@ void coremu_send_intr(void *e, int coreid)
     }
 }
 
-void coremu_cpu_signal_handler(int signo, siginfo_t *info, void *context)
+void coremu_core_signal_handler(int signo, siginfo_t *info, void *context)
 {
     CMCore *core = coremu_get_core_self();
 

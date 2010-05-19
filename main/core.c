@@ -36,6 +36,7 @@
 #include "coremu-sched.h"
 #include "coremu-hw-lockfree.h"
 #include "coremu-intr.h"
+#include "core.h"
 
 /* pause condition */
 pthread_cond_t pause_cond=COREMU_COND_INITIALIZER;
@@ -64,7 +65,8 @@ CMCore *cm_cores;
 /* Pointer to the core object of the thread. */
 COREMU_THREAD CMCore *cm_core_self;
 
-extern void coremu_cpu_signal_handler(int signo, siginfo_t *info, void *context);
+extern void coremu_core_signal_handler(int signo, siginfo_t *info,
+        void *context);
 void coremu_init(int smp_cpus)
 {
     cm_print("\nTIMERRTSIG:\t\t%d"
@@ -118,7 +120,7 @@ void coremu_init(int smp_cpus)
     sigfillset(&act.sa_mask);
     act.sa_flags = 0;
     act.sa_flags |= SA_SIGINFO;
-    act.sa_sigaction = coremu_cpu_signal_handler;
+    act.sa_sigaction = coremu_core_signal_handler;
 
     sigaction(COREMU_SIGNAL, &act, NULL);
 }
@@ -183,16 +185,6 @@ void coremu_assert_core_thr()
         assert(0);
     }
     return;
-}
-
-inline CMCore *coremu_get_core(int coreid)
-{
-    return &cm_cores[coreid];
-}
-
-inline CMCore *coremu_get_core_self()
-{
-    return cm_core_self;
 }
 
 void coremu_wait_init(void)

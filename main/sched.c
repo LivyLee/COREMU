@@ -30,7 +30,7 @@
 /*#define DEBUG_CM_SCHED*/
 
 #include "coremu-utils.h"
-#include "coremu-core.h"
+#include "core.h"
 #include "coremu-sched.h"
 
 int min_prio, max_prio;
