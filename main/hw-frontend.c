@@ -32,6 +32,7 @@
 #include "coremu-utils.h"
 #include "coremu-hw.h"
 #include "coremu-sched.h"
+#include "core.h"
 
 #if IOREQ_LOCK_FREE
 #include <coremu_hw_lockfree.h>
@@ -51,7 +52,7 @@ void coremu_prepare_pio_ioreq(cm_ioreq_t *q, uint64_t addr,
     q->type = IOREQ_TYPE_PIO;
 
     CMCore *core = coremu_get_core_self();
-    q->coreid = core->coreid;
+    q->core_thread = core->thread;
 
     static int id = 0;
     q->req_id = id++;
@@ -72,7 +73,7 @@ void coremu_prepare_mmio_ioreq(cm_ioreq_t *q,uint64_t addr,
     q->type = IOREQ_TYPE_MMIO;
 
     CMCore *core = coremu_get_core_self();
-    q->coreid = core->coreid;
+    q->core_thread = core->thread;
 
     static int id = 0;
     q->req_id = id++;

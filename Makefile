@@ -33,7 +33,6 @@ LIBOBJS += $(OBJDIR)/main/timer.o
 LIBOBJS += $(OBJDIR)/main/intr.o
 LIBOBJS += $(OBJDIR)/main/malloc-helper.o
 LIBOBJS += $(OBJDIR)/main/ms-queue.o
-LIBOBJS += $(OBJDIR)/main/timevar.o
 LIBOBJS += $(OBJDIR)/main/tools.o
 
 # No longer used. We do this in configure.

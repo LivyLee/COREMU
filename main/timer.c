@@ -34,6 +34,7 @@
 
 #include "coremu-utils.h"
 #include "coremu-timer.h"
+#include "coremu-malloc.h"
 
 #define sigev_notify_thread_id _sigev_un._tid
 #define TIMER_WAIT_TIME    (10)
@@ -57,7 +58,7 @@ int coremu_local_timer_create(int signo,
 {
     /* init the thread local alarm */
     cm_local_alarm_t *lalarm = NULL;
-    lalarm = qemu_mallocz(sizeof(cm_local_alarm_t));
+    lalarm = coremu_mallocz(sizeof(cm_local_alarm_t));
     lalarm->opaque = opaque;
     lalarm->signo = signo;
     lalarm->tid = thrid;

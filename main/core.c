@@ -36,6 +36,7 @@
 #include "coremu-sched.h"
 #include "coremu-hw-lockfree.h"
 #include "coremu-intr.h"
+#include "coremu-malloc.h"
 #include "core.h"
 
 /* pause condition */
@@ -94,7 +95,7 @@ void coremu_init(int smp_cpus)
         cm_intr_delay_step = (cm_smp_cpus + 127)/128;
 
     /* step 1: init the global core array */
-    cm_cores = (CMCore *) qemu_mallocz(cm_smp_cpus * sizeof(*cm_cores));
+    cm_cores = (CMCore *) coremu_mallocz(cm_smp_cpus * sizeof(*cm_cores));
 
     /* step 2: init the coremu timer thread */
 
@@ -110,7 +111,6 @@ void coremu_init(int smp_cpus)
     /* add the block signal to block signal set */
     //sigaddset(&cm_blk_sigset, TIMERRTSIG);
 
-    coremu_start_timer_thread();
     coremu_init_hw(cm_smp_cpus);
 
     /* step 3: register CORMEU signal handling */
@@ -159,7 +159,7 @@ void coremu_run_all_cores(thr_start_routine thr_fn)
     pthread_attr_setschedpolicy(&thr_attr, SCHED_RR);
 
     for (cur = cm_cores; cur != cm_cores + cm_smp_cpus; cur++){
-        err = pthread_create(&cur->coreid, &thr_attr, thr_fn,
+        err = pthread_create(&cur->thread, &thr_attr, thr_fn,
                 cur->opaque);
         cm_assert((! err), "pthread creation fails...");
     }
@@ -196,7 +196,7 @@ void coremu_wait_init(void)
 
 int coremu_wait_tid(CMCore *core, void **val_ptr)
 {
-    return pthread_join(core->coreid, val_ptr);
+    return pthread_join(core->thread, val_ptr);
 }
 
 void coremu_core_exit(void *value_ptr)

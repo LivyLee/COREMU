@@ -132,7 +132,7 @@ void coremu_send_intr(void *e, int coreid)
         core->state = STATE_RUN;
 
         coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
-        pthread_kill(core->coreid, COREMU_SIGNAL);
+        pthread_kill(core->thread, COREMU_SIGNAL);
     }
 }
 

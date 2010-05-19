@@ -52,10 +52,8 @@
 /* libtopology suppport */
 #include <topology.h>
 
-#include "timevar.h"
 #include "sched.h"
 
-/* Debugging utilities for COREMU */
 #include "coremu.h"
 #include "coremu-thread.h"
 #include "coremu-atomic.h"

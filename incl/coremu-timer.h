@@ -31,7 +31,4 @@
 int coremu_local_timer_create(int signo, void *opaque, timer_t *host_timer,
         cm_local_alarm_t **lalarm, pthread_t thrid);
 
-/* start the coremu timer thread */
-void coremu_start_timer_thread(void);
-
 #endif /* _COREMU_TIMER_H */

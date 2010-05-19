@@ -35,8 +35,6 @@
 
 typedef void *(thr_start_routine)(void *);
 
-typedef pthread_t core_t;
-
 typedef pid_t tid_t;
 
 typedef pthread_t hw_thr_t;
@@ -86,7 +84,7 @@ typedef struct cm_timer_debug_s {
 /* processor type */
 typedef struct CMCore {
     uint32_t serial;                     /* number start from 0 */
-    core_t coreid;                       /* ID of the core */
+    pthread_t thread;                    /* ID of the core */
     tid_t tid;                           /* kernel process id */
 
     cm_local_alarm_t *local_alarm;       /* local alarm timer for each core */
@@ -116,7 +114,7 @@ typedef struct cm_ioreq_s {
     uint8_t type;                        /* I/O type */
     uint64_t io_count;                   /* How many IO done on a vcpu */
 
-    pthread_t  coreid;                   /* core that makes this req */
+    pthread_t  core_thread;              /* core that makes this req */
     int req_id;                          /* for debug */
 } cm_ioreq_t;
 
