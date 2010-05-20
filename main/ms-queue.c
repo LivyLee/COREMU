@@ -29,7 +29,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "coremu-utils.h"
+#include "utils.h"
 
 #if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
     /* this is ok */

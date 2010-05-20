@@ -30,7 +30,7 @@
 #define VERBOSE_COREMU
 #define TIMER_PERIODIC_SLEEP      /* sleep sometime instead of busy loop? */
 
-#include "coremu-utils.h"
+#include "utils.h"
 #include "coremu-timer.h"
 #include "coremu-malloc.h"
 

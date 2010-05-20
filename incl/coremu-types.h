@@ -65,13 +65,6 @@ typedef enum sched_hw_event {
     EVENT_HW_CNT,
 } sched_hw_event_t;
 
-/* local timer type */
-typedef struct cm_local_alarm_s {
-    pthread_t tid;                       /* the thread id */
-    int signo;                           /* the signo to send to each thread */
-    void *opaque;                        /* qemu_alarm_timer for qemu */
-} cm_local_alarm_t;
-
 typedef struct cm_timer_debug_s {
    uint64_t lapic_timer_cnt;
    uint64_t rearm_cnt;
@@ -86,8 +79,6 @@ typedef struct CMCore {
     uint32_t serial;                     /* number start from 0 */
     pthread_t thread;                    /* ID of the core */
     tid_t tid;                           /* kernel process id */
-
-    cm_local_alarm_t *local_alarm;       /* local alarm timer for each core */
 
     queue_t *intr_queue;                 /* interrupt queue for the core */
     uint64_t time_stamp;                 /* recode the time of intr pending */

@@ -30,7 +30,7 @@
 
 #define _GNU_SOURCE             /* for some GNU specific interfaces */
 
-#include "coremu-utils.h"
+#include "utils.h"
 #include "coremu-hw.h"
 #include "coremu-timer.h"
 #include "coremu-sched.h"

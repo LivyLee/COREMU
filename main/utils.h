@@ -1,8 +1,7 @@
 /*
  * COREMU Parallel Emulator Framework
  *
- * Utilities that only used in COREMU, these utilities may conflict with those
- * defined in QEMU.
+ * Utilities that only used in COREMU.
  *
  * Copyright (C) 2010 PPI, Fudan Univ. <http://ppi.fudan.edu.cn/system_research_group>
  *
@@ -25,8 +24,8 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _COREMU_UTILS_H
-#define _COREMU_UTILS_H
+#ifndef _UTILS_H
+#define _UTILS_H
 
 #include <stdio.h>
 #include <stdint.h>
@@ -70,5 +69,4 @@ void coremu_serialize(void);
 pid_t coremu_gettid(void);
 void coremu_backtrace(void);
 
-#endif /* _COREMU_UTILS_H */
-
+#endif /* _UTILS_H */

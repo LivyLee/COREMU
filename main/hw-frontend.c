@@ -29,7 +29,7 @@
 /*#define DEBUG_COREMU*/
 #define VERBOSE_COREMU
 
-#include "coremu-utils.h"
+#include "utils.h"
 #include "coremu-hw.h"
 #include "coremu-sched.h"
 #include "core.h"
