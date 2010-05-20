@@ -28,9 +28,7 @@
 
 /*#define DEBUG_COREMU*/
 #define VERBOSE_COREMU
-/*#define BIND_TIMER_THR*/        /* bind timer thread to a specific CORE? */
 #define TIMER_PERIODIC_SLEEP      /* sleep sometime instead of busy loop? */
-/*#define LAPIC_TIME_DEBUG*/
 
 #include "coremu-utils.h"
 #include "coremu-timer.h"
@@ -41,148 +39,15 @@
 #define handle_error_en(en, msg)   \
     do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
-#if TIMER_THREAD_ENABLE
-
-static void local_alarm_handler(int signo,
-                           siginfo_t *info, void *context);
-static void *timer_fn(void* arg);
-static volatile int timer_init_done = 0;
-
-#endif
-
-int coremu_local_timer_create(int signo,
-                              void *opaque,
-                              timer_t *host_timer_ptr,
-                              cm_local_alarm_t **lalarm_ptr,
-                              pthread_t thrid)
+int coremu_timer_create(int signo, timer_t *host_timer_ptr)
 {
-    /* init the thread local alarm */
-    cm_local_alarm_t *lalarm = NULL;
-    lalarm = coremu_mallocz(sizeof(cm_local_alarm_t));
-    lalarm->opaque = opaque;
-    lalarm->signo = signo;
-    lalarm->tid = thrid;
-
-    *lalarm_ptr = lalarm;
-
     /* create alarm timer using 'timer_create' */
     struct sigevent ev;
-    ev.sigev_value.sival_ptr = (void *) (lalarm);
 
-#if TIMER_THREAD_ENABLE
-	ev.sigev_notify = SIGEV_SIGNAL;
-    ev.sigev_signo = TIMERRTSIG;
-#else
-	ev.sigev_notify = SIGEV_THREAD_ID;
-	ev.sigev_signo = signo;
-	ev.sigev_notify_thread_id = coremu_gettid();
-#endif
+    ev.sigev_notify = SIGEV_THREAD_ID;
+    ev.sigev_signo = signo;
+    ev.sigev_notify_thread_id = coremu_gettid();
 
     return timer_create(CLOCK_REALTIME, &ev, host_timer_ptr);
 }
 
-void coremu_start_timer_thread()
-{
-#if TIMER_THREAD_ENABLE
-    /* XXX: other threads block TIMERRTSIG */
-    sigset_t set;
-
-    sigemptyset(&set);
-    sigaddset(&set, TIMERRTSIG);
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
-
-    /* first create a specific timer thread */
-    pthread_t timer_tid;
-    pthread_create(&timer_tid, NULL, timer_fn, NULL);
-
-    /* wait the timer thread to be OK */
-    struct timespec tsp;
-    while(! timer_init_done) {
-        maketimeout(&tsp, 1);   /* 1 second per check */
-        nanosleep(&tsp, NULL);
-    }
-#endif
-}
-
-#if TIMER_THREAD_ENABLE
-
-/* signal handler for local alarm */
-static void local_alarm_handler(int signo,
-                                siginfo_t *info, void *context)
-{
-    assert((signo == TIMERRTSIG));
-
-    /* handle the timer event */
-    cm_local_alarm_t *ltimer = (cm_local_alarm_t*)info->si_value.sival_ptr;
-
-    /* send the coremu signal to the core */
-    pthread_kill(ltimer->tid, ltimer->signo);
-}
-
-static void *timer_fn(void* arg)
-{
-    sigset_t set;
-
-#if DEBUG_COREMU
-    cm_print("Timer Thread tid[%lu]",
-             (unsigned long int)coremu_gettid());
-#endif
-
-#if BIND_TIMER_THR
-    /* bind the timer thread to specific core,
-       and give it high priority */
-    int host_cpus = coremu_get_hostcpu();
-    cm_print(">>> [Host] %d processors available <<<",
-             host_cpus);
-
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET((host_cpus - 1), &cpuset);
-
-    int s = pthread_setaffinity_np(pthread_self(),
-                                   sizeof(cpu_set_t), &cpuset);
-    if(s != 0)
-        handle_error_en(s, "pthread_setaffinity_np");
-#endif
-
-    /* set the priority of timer thread.
-       NOTE: since timing is critical, we set it
-       to highest priority */
-    //setpriority(PRIO_PROCESS, 0, coremu_get_maxprio());
-
-    /* block all but TIMERRTSIG signal */
-    sigfillset(&set);
-    pthread_sigmask(SIG_BLOCK, &set, NULL);
-
-    sigemptyset(&set);
-    sigaddset(&set, TIMERRTSIG);
-    pthread_sigmask(SIG_UNBLOCK, &set, NULL);
-
-
-    /* register the signal handler */
-    struct sigaction act;
-    sigfillset(&act.sa_mask);   /* mask all signals on entry */
-    act.sa_flags = 0;
-    act.sa_flags |= SA_SIGINFO;
-    act.sa_sigaction = local_alarm_handler;
-
-    sigaction(TIMERRTSIG, &act, NULL);
-
-    /* init is ready */
-    timer_init_done = true;
-
-#if DEBUG_COREMU
-    cm_print("Timer is ok");
-#endif
-
-    /* nanosleep to wait for signal */
-    struct timespec tsp;
-    while(true) {
-#if TIMER_PERIODIC_SLEEP
-        maketimeout(&tsp, TIMER_WAIT_TIME);
-        nanosleep(&tsp, NULL);
-#endif
-    }
-}
-
-#endif

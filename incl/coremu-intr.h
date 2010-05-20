@@ -32,7 +32,7 @@ void coremu_send_intr(void *e, int coreid);
 typedef void (*event_handler_t)(void *);
 void coremu_register_event_handler(event_handler_t fn);
 /* Handle all the pending interrupt. */
-void coremu_receive_intr();
+void coremu_receive_intr(void);
 
 /* event notifer will be called in coremu_cpu_signal_handler */
 typedef void (*event_notifier_t)(void);

@@ -28,7 +28,6 @@
 #include <time.h>
 
 /* create a per-core local alarm timer */
-int coremu_local_timer_create(int signo, void *opaque, timer_t *host_timer,
-        cm_local_alarm_t **lalarm, pthread_t thrid);
+int coremu_timer_create(int signo, timer_t *host_timer);
 
 #endif /* _COREMU_TIMER_H */

@@ -36,21 +36,4 @@ CMCore *coremu_core_init(int id, void *opaque);
  * coremu_core_init. */
 void coremu_run_all_cores(thr_start_routine thr_fn);
 
-/* assert the cur thr is a core thr
- * i.e. its  coremu core object is not nil */
-void coremu_assert_core_thr(void);
-
-/* Exit current core with return value pointer VALUE_PTR.
- * NOTE: the calling thread must NOT be hw thread...  */
-void coremu_core_exit(void *value_ptr);
-
-void coremu_pause_core(void);
-
-void coremu_restart_all_cores(void);
-
-void coremu_wait_pause(CMCore *core);
-
-/* Wait on a specfic core until it exits... */
-int coremu_wait_tid(CMCore *coreid, void **val_ptr);
-
 #endif /* _COREMU_CORE_H */
