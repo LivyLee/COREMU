@@ -64,7 +64,7 @@ int cm_smp_cpus;
 /* Array holding all the core object. */
 CMCore *cm_cores;
 /* Pointer to the core object of the thread. */
-COREMU_THREAD CMCore *cm_core_self;
+__thread CMCore *cm_core_self;
 
 extern void coremu_core_signal_handler(int signo, siginfo_t *info,
         void *context);

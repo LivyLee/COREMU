@@ -32,22 +32,6 @@
 #include "coremu-hw.h"
 #include "coremu-atomic.h"
 
-#if IOREQ_LOCK_FREE
-
-#include <coremu_hw_lockfree.h>
-
-queue_t *Q;
-
-void coremu_ioreq_ring_init(int smp_cpus)
-{
-    Q = new_queue();
-    assert(Q != NULL);
-
-    cm_print(">>> Use MS-nonblocking queue <<<");
-}
-
-#endif  /* IOREQ_LOCK_FREE */
-
 static volatile int ioreq_exit = 0;    /* flag to exit the ioreq wait */
 static hw_thr_t hw_thrid;
 static void register_hw_thr(void);

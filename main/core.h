@@ -39,6 +39,15 @@ static inline CMCore *coremu_get_core(int coreid)
 
 static inline CMCore *coremu_get_core_self()
 {
+    if (cm_core_self == NULL) {
+        int i = 0;
+        for (i = 0; i < cm_smp_cpus; i++) {
+            if (cm_cores[i].thread == pthread_self()) {
+                cm_core_self = &cm_cores[i];
+                break;
+            }
+        }    
+    }
     return cm_core_self;
 }
 
