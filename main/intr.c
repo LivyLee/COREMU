@@ -111,12 +111,18 @@ void coremu_send_intr(void *e, int coreid)
 
     /* Call event handler directly if sending interrupt to self. */
     if (core == coremu_get_core_self()) {
-        event_handler(e);
+        coremu_assert_core_thr();
+        event_notifier();
         return;
     }
 
     coremu_put_intr(core, e);
-    pending_intr = coremu_intr_get_size(core);
+
+    coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
+    pthread_kill(core->thread, COREMU_SIGNAL);
+
+#if 0
+     pending_intr = coremu_intr_get_size(core);
 
     /*  here need to do somethings that make the thresh hold to be  more smart!!!*/
     if (core->sig_pending) {
@@ -134,6 +140,7 @@ void coremu_send_intr(void *e, int coreid)
         coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
         pthread_kill(core->thread, COREMU_SIGNAL);
     }
+#endif    
 }
 
 void coremu_core_signal_handler(int signo, siginfo_t *info, void *context)
