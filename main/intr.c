@@ -29,7 +29,7 @@
 #define VERBOSE_COREMU
 
 #include <signal.h>
-#include "coremu-utils.h"
+#include "utils.h"
 #include "coremu-hw.h"
 #include "coremu-intr.h"
 #include "coremu-sched.h"

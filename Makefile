@@ -33,7 +33,7 @@ LIBOBJS += $(OBJDIR)/main/timer.o
 LIBOBJS += $(OBJDIR)/main/intr.o
 LIBOBJS += $(OBJDIR)/main/malloc-helper.o
 LIBOBJS += $(OBJDIR)/main/ms-queue.o
-LIBOBJS += $(OBJDIR)/main/tools.o
+LIBOBJS += $(OBJDIR)/main/utils.o
 
 # No longer used. We do this in configure.
 #header: $(OBJDIR)/qemu/config-host.h $(OBJDIR)/qemu/arm-softmmu/config-target.h

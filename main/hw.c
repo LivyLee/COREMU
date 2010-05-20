@@ -28,7 +28,7 @@
 #define VERBOSE_COREMU
 #define _GNU_SOURCE
 
-#include "coremu-utils.h"
+#include "utils.h"
 #include "coremu-hw.h"
 #include "coremu-atomic.h"
 

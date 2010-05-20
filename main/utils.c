@@ -25,7 +25,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "coremu-utils.h"
+#include "utils.h"
 
 /* serializing instruction stream using CPUID.
  * Example: cpuid(1, eax, ebx, ecx, edx); */

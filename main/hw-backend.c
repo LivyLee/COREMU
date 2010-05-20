@@ -31,7 +31,7 @@
 #define VERBOSE_COREMU
 /*#define DEBUG_IO_REQ*/
 
-#include "coremu-utils.h"
+#include "utils.h"
 #include "coremu-hw.h"
 #include "coremu-sched.h"
 
