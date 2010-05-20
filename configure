@@ -30,6 +30,7 @@ ${qemusrc}/configure --prefix=${coremuroot}/bin/qemu \
             -I${coremuroot}/obj/qemu \
             -I${coremuroot}/obj/qemu/${target}-softmmu" \
     --target-list="${target}-softmmu" \
+	--enable-debug \
     --disable-werror
 
 make config-host.h
