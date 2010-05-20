@@ -56,15 +56,6 @@ static void register_hw_thr(void);
 void coremu_init_hw(int smp_cpus)
 {
     register_hw_thr();
-
-#ifdef IOREQ_SYNC
-    /* do nothing */
-#elif defined(IOREQ_LOCK_FREE)
-    /* Init the sync IO ring */
-    cm_assert((smp_cpus > 0),
-              "[fatal] NO cpus?!");
-    coremu_ioreq_ring_init(smp_cpus);
-#endif
 }
 
 void coremu_signal_hw_thr(int signo)
