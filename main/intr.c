@@ -106,14 +106,14 @@ void coremu_receive_intr()
 void coremu_send_intr(void *e, int coreid)
 {
     cm_assert(e, "interrupt argument is NULL");
-    uint64_t pending_intr;
     CMCore *core = coremu_get_core(coreid);
 
-    /* Call event handler directly if sending interrupt to self. */
-    if (core == coremu_get_core_self()) {
-        coremu_assert_core_thr();
-        event_notifier();
-        return;
+    /* Call event notifier directly if sending interrupt to self. */
+    if (!coremu_hw_thr_p()) {
+        if (core == coremu_get_core_self()) {
+            event_notifier();
+            return;
+        }
     }
 
     coremu_put_intr(core, e);
@@ -122,7 +122,7 @@ void coremu_send_intr(void *e, int coreid)
     pthread_kill(core->thread, COREMU_SIGNAL);
 
 #if 0
-     pending_intr = coremu_intr_get_size(core);
+     uint64_t pending_intr = coremu_intr_get_size(core);
 
     /*  here need to do somethings that make the thresh hold to be  more smart!!!*/
     if (core->sig_pending) {

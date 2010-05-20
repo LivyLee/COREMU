@@ -87,25 +87,27 @@ static void topology_init()
     fprintf(stderr, "----------------------------------------------------------\n");
 }
 
-static void topology_bind_hw()
-{
-    topo_obj_t obj;
-    topo_cpuset_t cpuset;
-
-    obj = topo_get_obj_by_depth(topology, depth, 0);
-    cpuset = obj->cpuset;
-    topo_cpuset_singlify(&cpuset);
-
-    if (topo_set_cpubind(topology, &cpuset, TOPO_CPUBIND_THREAD)) {
-        char s[TOPO_CPUSET_STRING_LENGTH + 1];
-        topo_cpuset_snprintf(s, sizeof(s), &obj->cpuset);
-        printf("Couldn't bind to cpuset %s\n", s);
-        exit(-1);
-    }
-
-    fprintf(stderr, "hw [%lu] binds to %d\n",
-            (unsigned long int)coremu_gettid() , 0);
-}
+/*
+ *static void topology_bind_hw()
+ *{
+ *    topo_obj_t obj;
+ *    topo_cpuset_t cpuset;
+ *
+ *    obj = topo_get_obj_by_depth(topology, depth, 0);
+ *    cpuset = obj->cpuset;
+ *    topo_cpuset_singlify(&cpuset);
+ *
+ *    if (topo_set_cpubind(topology, &cpuset, TOPO_CPUBIND_THREAD)) {
+ *        char s[TOPO_CPUSET_STRING_LENGTH + 1];
+ *        topo_cpuset_snprintf(s, sizeof(s), &obj->cpuset);
+ *        printf("Couldn't bind to cpuset %s\n", s);
+ *        exit(-1);
+ *    }
+ *
+ *    fprintf(stderr, "hw [%lu] binds to %d\n",
+ *            (unsigned long int)coremu_gettid() , 0);
+ *}
+ */
 
 static void topology_bind_core()
 {

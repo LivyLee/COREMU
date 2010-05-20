@@ -26,6 +26,7 @@
 #define _CORE_H
 
 #include "coremu-core.h"
+#include "coremu-hw.h"
 
 extern int cm_smp_cpus;
 extern CMCore *cm_cores;
@@ -37,38 +38,20 @@ static inline CMCore *coremu_get_core(int coreid)
     return &cm_cores[coreid];
 }
 
-static inline CMCore *coremu_get_core_self()
+/* Return the core data for the core itself. */
+static inline CMCore *coremu_get_core_self(void)
 {
+    coremu_assert_core_thr();
     if (cm_core_self == NULL) {
-        int i = 0;
-        for (i = 0; i < cm_smp_cpus; i++) {
-            if (cm_cores[i].thread == pthread_self()) {
-                cm_core_self = &cm_cores[i];
+        CMCore *core;
+        for (core = cm_cores; core < cm_cores + cm_smp_cpus; core++) {
+            if (core->thread == pthread_self()) {
+                cm_core_self = core;
                 break;
             }
-        }    
+        }
     }
     return cm_core_self;
 }
-
-/* Return the core data for the core itself. */
-CMCore *coremu_get_core_self();
-
-/* assert the cur thr is a core thr
- * i.e. its  coremu core object is not nil */
-void coremu_assert_core_thr(void);
-
-/* Exit current core with return value pointer VALUE_PTR.
- * NOTE: the calling thread must NOT be hw thread...  */
-void coremu_core_exit(void *value_ptr);
-
-void coremu_pause_core(void);
-
-void coremu_restart_all_cores(void);
-
-void coremu_wait_pause(CMCore *core);
-
-/* Wait on a specfic core until it exits... */
-int coremu_wait_tid(CMCore *coreid, void **val_ptr);
 
 #endif /* _CORE_H */
