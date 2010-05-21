@@ -32,10 +32,10 @@
 
 /* Signals used in COREMU */
 #define TIMERRTSIG              SIGRTMIN          /* Timer thread implicit signal */
-#define COREMU_TIMER_SIGNAL     (SIGRTMIN + 1)    /* CORE alarm signal */
-#define COREMU_TIMER_ALARM      (SIGRTMIN + 2)    /* Hardware alarm signal */
+#define COREMU_CORE_ALARM       (SIGRTMIN + 1)    /* CORE alarm signal */
+#define COREMU_HARDWARE_ALARM   (SIGRTMIN + 2)    /* Hardware alarm signal */
 #define COREMU_SIGNAL           (SIGRTMIN + 3)    /* COREMU Interrupts */
-#define COREMU_AIO_SIG          (SIGRTMIN+4)      /* Aynchrous I/O (e.g. DMA) */
+#define COREMU_AIO_SIG          (SIGRTMIN + 4)    /* Aynchrous I/O (e.g. DMA) */
 
 extern __thread unsigned long int cm_retry_num;
 /**

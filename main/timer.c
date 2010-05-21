@@ -43,6 +43,7 @@ int coremu_timer_create(int signo, timer_t *host_timer_ptr)
 {
     /* create alarm timer using 'timer_create' */
     struct sigevent ev;
+    memset(&ev, 0, sizeof(ev));
 
     ev.sigev_notify = SIGEV_THREAD_ID;
     ev.sigev_signo = signo;

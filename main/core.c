@@ -75,8 +75,8 @@ void coremu_init(int smp_cpus)
              "\nCOREMU_TIMER_ALARM:\t%d"
              "\nCOREMU_SIGNAL:\t\t%d"
              "\nCOREMU_AIO_SIG:\t\t%d\n",
-             TIMERRTSIG, COREMU_TIMER_SIGNAL,
-             COREMU_TIMER_ALARM, COREMU_SIGNAL, COREMU_AIO_SIG);
+             TIMERRTSIG, COREMU_CORE_ALARM,
+             COREMU_HARDWARE_ALARM, COREMU_SIGNAL, COREMU_AIO_SIG);
     cm_smp_cpus = smp_cpus;
 
     /* step 0: init scheduling support */
