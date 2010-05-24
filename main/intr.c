@@ -108,15 +108,17 @@ void coremu_send_intr(void *e, int coreid)
     cm_assert(e, "interrupt argument is NULL");
     CMCore *core = coremu_get_core(coreid);
 
-    /* Call event notifier directly if sending interrupt to self. */
+    coremu_put_intr(core, e);
+
+    /* Call event notifier directly if sending interrupt to self.
+     * Note that we still need to put the interrupt in the queue, otherwise, the
+     * core will lost this interrupt. */
     if (!coremu_hw_thr_p()) {
         if (core == coremu_get_core_self()) {
             event_notifier();
             return;
         }
     }
-
-    coremu_put_intr(core, e);
 
     coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
     pthread_kill(core->thread, COREMU_SIGNAL);
