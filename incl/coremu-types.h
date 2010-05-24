@@ -28,6 +28,7 @@
 #define _CM_TYPES_H
 
 #include "coremu-config.h"
+#include "ms-queue.h"
 
 /* ************************* Base types ************************* */
 #define true 1

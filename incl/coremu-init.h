@@ -22,20 +22,8 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _COREMU_H
-#define _COREMU_H
-
-#include "coremu-config.h"
-#include "ms-queue.h"
-#include "coremu-types.h"
-#include "coremu-core.h"
-
-/* Signals used in COREMU */
-#define TIMERRTSIG              SIGRTMIN          /* Timer thread implicit signal */
-#define COREMU_CORE_ALARM       (SIGRTMIN + 1)    /* CORE alarm signal */
-#define COREMU_HARDWARE_ALARM   (SIGRTMIN + 2)    /* Hardware alarm signal */
-#define COREMU_SIGNAL           (SIGRTMIN + 3)    /* COREMU Interrupts */
-#define COREMU_AIO_SIG          (SIGRTMIN + 4)    /* Aynchrous I/O (e.g. DMA) */
+#ifndef _COREMU_INIT_H
+#define _COREMU_INIT_H
 
 extern __thread unsigned long int cm_retry_num;
 /**
@@ -56,5 +44,5 @@ int coremu_init_done_p(void);
  * has done...  */
 void coremu_wait_init(void);
 
-#endif /* _COREMU_H */
+#endif /* _COREMU_INIT_H */
 

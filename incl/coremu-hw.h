@@ -27,6 +27,8 @@
 #ifndef _COREMU_HW_H
 #define _COREMU_HW_H
 
+#include "coremu-types.h"
+
 #define HWEVENT_TYPE_TIMER      0
 
 /* REQ type */

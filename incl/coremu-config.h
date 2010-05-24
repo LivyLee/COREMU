@@ -30,6 +30,13 @@
 
 #define CONFIG_COREMU                   /* whether adapt to coremu */
 
+/* Signals used in COREMU */
+#define TIMERRTSIG              SIGRTMIN          /* Timer thread implicit signal */
+#define COREMU_CORE_ALARM       (SIGRTMIN + 1)    /* CORE alarm signal */
+#define COREMU_HARDWARE_ALARM   (SIGRTMIN + 2)    /* Hardware alarm signal */
+#define COREMU_SIGNAL           (SIGRTMIN + 3)    /* COREMU Interrupts */
+#define COREMU_AIO_SIG          (SIGRTMIN + 4)    /* Aynchrous I/O (e.g. DMA) */
+
 //#define TIMER_THREAD_ENABLE             /* use timer thread for per-thread timing? */
 
 /* There are 3 choices for atomic instruction emulation

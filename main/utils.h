@@ -53,7 +53,6 @@
 
 #include "sched.h"
 
-#include "coremu.h"
 #include "coremu-thread.h"
 #include "coremu-atomic.h"
 #include "coremu-debug.h"
