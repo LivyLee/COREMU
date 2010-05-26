@@ -38,15 +38,19 @@
 # define cm_print(fmt, args...) fprintf(stderr, "%s(line %d), %s: " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
 # define cm_out(fmt, args...) printf("%s(line %d), %s: " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
 # define cm_fprint(stream, fmt, args...) fprintf(stream, "%s(line %d), %s: " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
+#else  /* null .. */
+# define cm_print(fmt, args...)
+# define cm_out(fmt, args...)
+# define cm_fprint(stream, fmt, args...)
+#endif
+
+#if !defined(NDEBUG) && defined(CONFIG_COREMU)
 # define cm_assert(exp, fmt, args...) { \
       if(! (exp)) { \
           fprintf(stderr, "%s(line %d), %s: " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args); \
       } \
       assert((exp)); }
-#else  /* null .. */
-# define cm_print(fmt, args...)
-# define cm_out(fmt, args...)
-# define cm_fprint(stream, fmt, args...)
+#else
 # define cm_assert(exp, fmt, args...)
 #endif
 
