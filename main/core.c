@@ -169,10 +169,7 @@ void coremu_run_all_cores(thr_start_routine thr_fn)
 
 int coremu_init_done_p()
 {
-    int done_flag;
-    done_flag = init_done;
-
-    return done_flag;
+    return init_done;
 }
 
 void coremu_assert_core_thr()
@@ -187,8 +184,9 @@ void coremu_assert_core_thr()
 void coremu_wait_init(void)
 {
     struct timespec tsp;
-    while(! init_done) {
-        maketimeout(&tsp, 1);   /* 1 second per check */
+    tsp.tv_sec = 0;
+    tsp.tv_nsec = 1000000; /* 1 milli-second per check */
+    while (! init_done) {
         nanosleep(&tsp, NULL);
     }
 }
