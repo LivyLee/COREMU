@@ -32,6 +32,8 @@
 #include <sys/resource.h>
 #include <sched.h>
 
+#include "coremu-types.h"
+
 /* controlling scheduling */
 #define CM_ENABLE_SCHED
 
