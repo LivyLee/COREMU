@@ -84,43 +84,22 @@ static inline uint8_t bit_test(int *base, int off)
 /* swap the value VAL and *p.
  * Return the value swapped out from memory. */
 
-#define EXCHANGE(type) \
-    __asm __volatile(                     \
-            "lock; xchg##type %1,%2 \n\t" \
-            : "=a" (out), "+m" (*p)       \
-            : "a" (val)                   \
-            )
-
-static inline uint8_t atomic_exchange8(uint8_t *p, uint8_t val)
-{
-    uint8_t out;
-    EXCHANGE("b");
-    return out;
+#define GEN_EXCHANGE(data_type, type, suffix) \
+static inline data_type atomic_exchange##suffix(uint8_t *p, data_type val) \
+{                                                               \
+    data_type out;                                              \
+    __asm __volatile(                                           \
+            "lock; xchg"type" %1,%2 \n\t"                       \
+            : "=a" (out), "+m" (*p)                             \
+            : "a" (val)                                         \
+            );                                                  \
+    return out;                                                 \
 }
 
-static inline uint16_t atomic_exchange16(uint16_t *p, uint16_t val)
-{
-    uint16_t out;
-    EXCHANGE("w");
-
-    return out;
-}
-
-static inline uint32_t atomic_exchange32(uint32_t *p, uint32_t val)
-{
-    uint32_t out;
-    EXCHANGE("l");
-
-    return out;
-}
-
-static inline uint64_t atomic_exchange64(uint64_t *p, uint64_t val)
-{
-    uint64_t out;
-    EXCHANGE("q");
-
-    return out;
-}
+GEN_EXCHANGE(uint8_t,  "b",  8);
+GEN_EXCHANGE(uint16_t, "w", 16);
+GEN_EXCHANGE(uint32_t, "l", 32);
+GEN_EXCHANGE(uint64_t, "q", 64);
 
 /************************
  * compare and exchange
@@ -132,40 +111,23 @@ static inline uint64_t atomic_exchange64(uint64_t *p, uint64_t val)
  * Return value is the previous value of "p".  So if return value is same
  * as "old", the swap occurred, otherwise it did not. */
 
-#define CMPEXCHANGE(type) \
-    __asm__ __volatile__ (              \
-            "lock; cmpxchg"type" %2,%1" \
-            : "=a" (out), "+m" (*p)     \
-            : "q" (newv), "0" (old)     \
-            : "cc")
-
-static inline uint8_t atomic_compare_exchange8(uint8_t *p, uint8_t old, uint8_t newv)
-{
-    uint8_t out;
-    CMPEXCHANGE("b");
-    return out;
+#define GEN_CMPEXCHANGE(data_type, type, suffix) \
+static inline data_type atomic_compare_exchange##suffix(data_type *p, \
+        data_type old, data_type newv)                                \
+{                                                                     \
+    data_type out;                                                    \
+    __asm__ __volatile__ (                                            \
+            "lock; cmpxchg"type" %2,%1"                               \
+            : "=a" (out), "+m" (*p)                                   \
+            : "q" (newv), "0" (old)                                   \
+            : "cc");                                                  \
+    return out;                                                       \
 }
 
-static inline uint16_t atomic_compare_exchange16(uint16_t *p, uint16_t old, uint16_t newv)
-{
-    uint16_t out;
-    CMPEXCHANGE("w");
-    return out;
-}
-
-static inline uint32_t atomic_compare_exchange32(uint32_t *p, uint32_t old, uint32_t newv)
-{
-    uint32_t out;
-    CMPEXCHANGE("l");
-    return out;
-}
-
-static inline uint64_t atomic_compare_exchange64(uint64_t *p, uint64_t old, uint64_t newv)
-{
-    uint64_t out;
-    CMPEXCHANGE("q");
-    return out;
-}
+GEN_CMPEXCHANGE(uint8_t,  "b",  8);
+GEN_CMPEXCHANGE(uint16_t, "w", 16);
+GEN_CMPEXCHANGE(uint32_t, "l", 32);
+GEN_CMPEXCHANGE(uint64_t, "q", 64);
 
 static inline uint8_t atomic_compare_exchange16B(uint64_t *memp,
                                                  uint64_t rax, uint64_t rdx,
@@ -185,53 +147,37 @@ static inline uint8_t atomic_compare_exchange16B(uint64_t *memp,
  * atomic inc
  ************************/
 
-#define INC(type) \
-    __asm__ __volatile__(   \
-            "lock; inc"type" %0" \
-            : "+m" (*p)     \
-            :               \
-            : "cc")
-
-static __inline__ void atomic_inc16(uint16_t *p)
-{
-    INC("w");
+#define GEN_INC(data_type, type, suffix) \
+static inline void atomic_inc##suffix(data_type *p)     \
+{                                                       \
+    __asm__ __volatile__(                               \
+            "lock; inc"type" %0"                        \
+            : "+m" (*p)                                 \
+            :                                           \
+            : "cc");                                    \
 }
 
-static __inline__ void atomic_inc32(uint32_t *p)
-{
-    INC("l");
-}
-
-static __inline__ void atomic_inc64(uint64_t *p)
-{
-    INC("q");
-}
+GEN_INC(uint16_t, "w", 16);
+GEN_INC(uint32_t, "l", 32);
+GEN_INC(uint64_t, "q", 64);
 
 /************************
  * atomic dec
  ************************/
 
-#define DEC(type) \
-    __asm__ __volatile__(   \
-            "lock; dec"type" %0" \
-            : "+m" (*p)     \
-            :               \
-            : "cc")
-
-static __inline__ void atomic_dec16(uint16_t *p)
-{
-    DEC("w");
+#define GEN_DEC(data_type, type, suffix) \
+static inline void atomic_dec##suffix(data_type *p)     \
+{                                                       \
+    __asm__ __volatile__(                               \
+            "lock; dec"type" %0"                        \
+            : "+m" (*p)                                 \
+            :                                           \
+            : "cc");                                    \
 }
 
-static __inline__ void atomic_dec32(uint32_t *p)
-{
-    DEC("l");
-}
-
-static __inline__ void atomic_dec64(uint64_t *p)
-{
-    DEC("q");
-}
+GEN_DEC(uint16_t, "w", 16);
+GEN_DEC(uint32_t, "l", 32);
+GEN_DEC(uint64_t, "q", 64);
 
 /* Memory Barriers: x86-64 ONLY now */
 #define mb()    asm volatile("mfence":::"memory")
