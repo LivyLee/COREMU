@@ -89,13 +89,13 @@ int coremu_ioreq_exit_p()
 /* -- add one exit request -- */
 void coremu_inc_ioreq_exit()
 {
-    atomic_inc32((uint32_t *) &ioreq_exit);
+    atomic_incl((uint32_t *) &ioreq_exit);
 }
 
 /* -- del one exit request -- */
 void coremu_dec_ioreq_exit()
 {
-    atomic_dec32((uint32_t *) &ioreq_exit);
+    atomic_decl((uint32_t *) &ioreq_exit);
 }
 
 static void register_hw_thr()

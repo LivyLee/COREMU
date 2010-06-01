@@ -96,10 +96,10 @@ static inline data_type atomic_exchange##suffix(uint8_t *p, data_type val) \
     return out;                                                 \
 }
 
-GEN_EXCHANGE(uint8_t,  "b",  8);
-GEN_EXCHANGE(uint16_t, "w", 16);
-GEN_EXCHANGE(uint32_t, "l", 32);
-GEN_EXCHANGE(uint64_t, "q", 64);
+GEN_EXCHANGE(uint8_t,  "b", b);
+GEN_EXCHANGE(uint16_t, "w", w);
+GEN_EXCHANGE(uint32_t, "l", l);
+GEN_EXCHANGE(uint64_t, "q", q);
 
 /************************
  * compare and exchange
@@ -124,10 +124,10 @@ static inline data_type atomic_compare_exchange##suffix(data_type *p, \
     return out;                                                       \
 }
 
-GEN_CMPEXCHANGE(uint8_t,  "b",  8);
-GEN_CMPEXCHANGE(uint16_t, "w", 16);
-GEN_CMPEXCHANGE(uint32_t, "l", 32);
-GEN_CMPEXCHANGE(uint64_t, "q", 64);
+GEN_CMPEXCHANGE(uint8_t,  "b", b);
+GEN_CMPEXCHANGE(uint16_t, "w", w);
+GEN_CMPEXCHANGE(uint32_t, "l", l);
+GEN_CMPEXCHANGE(uint64_t, "q", q);
 
 static inline uint8_t atomic_compare_exchange16B(uint64_t *memp,
                                                  uint64_t rax, uint64_t rdx,
@@ -157,9 +157,9 @@ static inline void atomic_inc##suffix(data_type *p)     \
             : "cc");                                    \
 }
 
-GEN_INC(uint16_t, "w", 16);
-GEN_INC(uint32_t, "l", 32);
-GEN_INC(uint64_t, "q", 64);
+GEN_INC(uint16_t, "w", w);
+GEN_INC(uint32_t, "l", l);
+GEN_INC(uint64_t, "q", q);
 
 /************************
  * atomic dec
@@ -175,9 +175,9 @@ static inline void atomic_dec##suffix(data_type *p)     \
             : "cc");                                    \
 }
 
-GEN_DEC(uint16_t, "w", 16);
-GEN_DEC(uint32_t, "l", 32);
-GEN_DEC(uint64_t, "q", 64);
+GEN_DEC(uint16_t, "w", w);
+GEN_DEC(uint32_t, "l", l);
+GEN_DEC(uint64_t, "q", q);
 
 /* Memory Barriers: x86-64 ONLY now */
 #define mb()    asm volatile("mfence":::"memory")

@@ -99,7 +99,7 @@ void enqueue(queue_t *Q, data_type value)
     new_ptr.ptr = node;
     new_ptr.count = tail.count + 1;
     CAS(&Q->Tail, tail, new_ptr);                            /* Enqueue is done. Try to swing Tail to the inserted node */
-    atomic_inc64(&Q->count);
+    atomic_incq(&Q->count);
 
     /* -- restore the saved sigmask */
     coremu_sigmask_res(&save_set, "cannot restore mask");
@@ -141,7 +141,7 @@ int dequeue(queue_t *Q, data_type *pvalue)
     } /* endloop */
 
     ms_free(head.ptr);                                       /* It is safe to free the old dummy node */
-    atomic_dec64(&Q->count);
+    atomic_decq(&Q->count);
     coremu_sigmask_res(&save_set, "cannot restore mask");    /* -- restore the saved sigmask */
 
     return true;                                             /* Queue was not empty, dequeue successed */
