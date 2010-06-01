@@ -2,7 +2,7 @@
  * COREMU Parallel Emulator Framework
  *
  * Atomic support for COREMU system.
- * XXX: NOW only support x86-64 architecture.
+ * XXX: Now only support x86-64 architecture.
  *
  * Copyright (C) 2010 PPI, Fudan Univ. <http://ppi.fudan.edu.cn/system_research_group>
  *
@@ -28,17 +28,21 @@
 #ifndef _COREMU_ATOMIC_H
 #define _COREMU_ATOMIC_H
 
-/* === bit test and set === */
+/************************
+ * bit test and set
+ ************************/
+
 static inline uint8_t bit_testandset(int *base, int off)
 {
     uint8_t readval = 0;
 
     /* CF <-- Bit(BitBase, BitOffset). */
-    __asm__ __volatile__ ("lock; btsl %2,%0\n\t"
-                          "setb %1\n\t"
-                          : "=m" (*base),"=a" (readval)
-                          : "Ir" (off)
-                          : "cc");
+    __asm__ __volatile__ (
+            "lock; btsl %2,%0\n\t"
+            "setb %1\n\t"
+            : "=m" (*base),"=a" (readval)
+            : "Ir" (off)
+            : "cc");
 
     return readval;
 }
@@ -48,11 +52,12 @@ static inline uint8_t bit_testandreset(int *base, int off)
     uint8_t readval = 0;
 
     /* CF <-- Bit(BitBase, BitOffset). */
-    __asm__ __volatile__ ("lock; btrl %2,%0\n\t"
-                          "setb %1\n\t"
-                          : "=m" (*base),"=a" (readval)
-                          : "Ir" (off)
-                          : "cc");
+    __asm__ __volatile__ (
+            "lock; btrl %2,%0\n\t"
+            "setb %1\n\t"
+            : "=m" (*base),"=a" (readval)
+            : "Ir" (off)
+            : "cc");
 
     return readval;
 }
@@ -62,40 +67,41 @@ static inline uint8_t bit_test(int *base, int off)
     uint8_t readval = 0;
 
     /* CF <-- Bit(BitBase, BitOffset). */
-    __asm__ __volatile__ ("lock; bt %2,%0\n\t"
-                          "setb %1\n\t"
-                          : "=m" (*base),"=a" (readval)
-                          : "Ir" (off)
-                          : "cc");
+    __asm__ __volatile__ (
+            "lock; bt %2,%0\n\t"
+            "setb %1\n\t"
+            : "=m" (*base),"=a" (readval)
+            : "Ir" (off)
+            : "cc");
 
     return readval;
 }
 
-/* === exchange === */
+/************************
+ * exchange
+ ************************/
 
-/*
- * swap the value VAL and *p.
- *
- * Return the value swapped out from memory.
- */
+/* swap the value VAL and *p.
+ * Return the value swapped out from memory. */
+
+#define EXCHANGE(type) \
+    __asm __volatile(                     \
+            "lock; xchg##type %1,%2 \n\t" \
+            : "=a" (out), "+m" (*p)       \
+            : "a" (val)                   \
+            )
+
 static inline uint8_t atomic_exchange8(uint8_t *p, uint8_t val)
 {
     uint8_t out;
-    __asm __volatile( "lock; xchgb %1,%2 \n\t"
-                      : "=a" (out), "+m" (*p)    /* output */
-                      : "a" (val)                /* input */
-        );
-
+    EXCHANGE("b");
     return out;
 }
 
 static inline uint16_t atomic_exchange16(uint16_t *p, uint16_t val)
 {
     uint16_t out;
-    __asm __volatile( "lock; xchgw %1,%2 \n\t"
-                      : "=a" (out), "+m" (*p)    /* output */
-                      : "a" (val)                /* input */
-        );
+    EXCHANGE("w");
 
     return out;
 }
@@ -103,10 +109,7 @@ static inline uint16_t atomic_exchange16(uint16_t *p, uint16_t val)
 static inline uint32_t atomic_exchange32(uint32_t *p, uint32_t val)
 {
     uint32_t out;
-    __asm __volatile( "lock; xchgl %1,%2 \n\t"
-                      : "=a" (out), "+m" (*p)    /* output */
-                      : "a" (val)                /* input */
-        );
+    EXCHANGE("l");
 
     return out;
 }
@@ -114,60 +117,53 @@ static inline uint32_t atomic_exchange32(uint32_t *p, uint32_t val)
 static inline uint64_t atomic_exchange64(uint64_t *p, uint64_t val)
 {
     uint64_t out;
-    __asm __volatile( "lock; xchgq %1,%2 \n\t"
-                      : "=a" (out), "+m" (*p)    /* output */
-                      : "a" (val)                /* input */
-        );
+    EXCHANGE("q");
 
     return out;
 }
 
-/* === compare and exchange === */
+/************************
+ * compare and exchange
+ ************************/
 
-/*
- * Atomically compare the value in "p" with "old", and set "p" to "newv"
+/* Atomically compare the value in "p" with "old", and set "p" to "newv"
  * if equal.
  *
  * Return value is the previous value of "p".  So if return value is same
- * as "old", the swap occurred, otherwise it did not.
- */
+ * as "old", the swap occurred, otherwise it did not. */
+
+#define CMPEXCHANGE(type) \
+    __asm__ __volatile__ (              \
+            "lock; cmpxchg"type" %2,%1" \
+            : "=a" (out), "+m" (*p)     \
+            : "q" (newv), "0" (old)     \
+            : "cc")
+
 static inline uint8_t atomic_compare_exchange8(uint8_t *p, uint8_t old, uint8_t newv)
 {
     uint8_t out;
-    __asm__ __volatile__ ( "lock; cmpxchgb %2,%1"
-                           : "=a" (out), "+m" (*p)
-                           : "q" (newv), "0" (old)
-                           : "cc");
+    CMPEXCHANGE("b");
     return out;
 }
 
 static inline uint16_t atomic_compare_exchange16(uint16_t *p, uint16_t old, uint16_t newv)
 {
     uint16_t out;
-    __asm__ __volatile__ ( "lock; cmpxchgw %2,%1"
-                           : "=a" (out), "+m" (*p)
-                           : "q" (newv), "0" (old)
-                           : "cc");
+    CMPEXCHANGE("w");
     return out;
 }
 
 static inline uint32_t atomic_compare_exchange32(uint32_t *p, uint32_t old, uint32_t newv)
 {
     uint32_t out;
-    __asm__ __volatile__ ( "lock; cmpxchgl %2,%1"
-                           : "=a" (out), "+m" (*p)
-                           : "q" (newv), "0" (old)
-                           : "cc");
+    CMPEXCHANGE("l");
     return out;
 }
 
 static inline uint64_t atomic_compare_exchange64(uint64_t *p, uint64_t old, uint64_t newv)
 {
     uint64_t out;
-    __asm__ __volatile__( "lock; cmpxchgq %2,%1"
-                          : "=a" (out), "+m" (*p)
-                          : "q" (newv), "0" (old)
-                          : "cc");
+    CMPEXCHANGE("q");
     return out;
 }
 
@@ -184,54 +180,57 @@ static inline uint8_t atomic_compare_exchange16B(uint64_t *memp,
     return z;
 }
 
-/* -- atomic inc -- */
-static __inline__ void atomic_inc64(uint64_t *p)
+
+/************************
+ * atomic inc
+ ************************/
+
+#define INC(type) \
+    __asm__ __volatile__(   \
+            "lock; inc"type" %0" \
+            : "+m" (*p)     \
+            :               \
+            : "cc")
+
+static __inline__ void atomic_inc16(uint16_t *p)
 {
-    __asm__ __volatile__("lock; incq %0"
-                         : "+m" (*p)
-                         :
-                         : "cc");
+    INC("w");
 }
 
 static __inline__ void atomic_inc32(uint32_t *p)
 {
-    __asm__ __volatile__("lock; incl %0"
-                         : "+m" (*p)
-                         :
-                         : "cc");
+    INC("l");
 }
 
-static __inline__ void atomic_inc16(uint16_t *p)
+static __inline__ void atomic_inc64(uint64_t *p)
 {
-    __asm__ __volatile__("lock; incw %0"
-                         : "+m" (*p)
-                         :
-                         : "cc");
+    INC("q");
 }
 
-/* -- atomic dec -- */
-static __inline__ void atomic_dec64(uint64_t *p)
+/************************
+ * atomic dec
+ ************************/
+
+#define DEC(type) \
+    __asm__ __volatile__(   \
+            "lock; dec"type" %0" \
+            : "+m" (*p)     \
+            :               \
+            : "cc")
+
+static __inline__ void atomic_dec16(uint16_t *p)
 {
-    __asm__ __volatile__("lock; decq %0"
-                         : "+m" (*p)
-                         :
-                         : "cc");
+    DEC("w");
 }
 
 static __inline__ void atomic_dec32(uint32_t *p)
 {
-    __asm__ __volatile__("lock; decl %0"
-                         : "+m" (*p)
-                         :
-                         : "cc");
+    DEC("l");
 }
 
-static __inline__ void atomic_dec16(uint16_t *p)
+static __inline__ void atomic_dec64(uint64_t *p)
 {
-    __asm__ __volatile__("lock; decw %0"
-                         : "+m" (*p)
-                         :
-                         : "cc");
+    DEC("q");
 }
 
 /* Memory Barriers: x86-64 ONLY now */
