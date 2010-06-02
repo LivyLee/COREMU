@@ -104,7 +104,7 @@ static inline uint64_t CAS(pointer_t *ptr, pointer_t old, pointer_t new)
 
     assert(((uint64_t)ptr & 0xf) == 0);
 
-    return atomic_compare_exchange16B((uint64_t *) ptr,
+    return atomic_compare_exchange16b((uint64_t *) ptr,
                                       rax, rdx, rbx, rcx);
 }
 

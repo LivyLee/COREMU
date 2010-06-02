@@ -135,7 +135,7 @@ GEN_CMPEXCHANGE(w);
 GEN_CMPEXCHANGE(l);
 GEN_CMPEXCHANGE(q);
 
-static inline uint8_t atomic_compare_exchange16B(uint64_t *memp,
+static inline uint8_t atomic_compare_exchange16b(uint64_t *memp,
                                                  uint64_t rax, uint64_t rdx,
                                                  uint64_t rbx, uint64_t rcx)
 {
