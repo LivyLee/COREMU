@@ -27,6 +27,7 @@
 #include <sys/types.h>
 
 #include "coremu-malloc.h"
+#include "coremu-atomic.h"
 
 static inline void *oom_check(void *ptr)
 {
@@ -51,5 +52,16 @@ void *coremu_mallocz(size_t size)
 void coremu_free(void *ptr)
 {
     free(ptr);
+}
+
+int coremu_atomic_mallocz(void **pp, size_t size)
+{
+    uint64_t res;
+    void *p = coremu_mallocz(size);
+    res = atomic_compare_exchangeq((uint64_t *)pp, (uint64_t)0, (uint64_t)p);
+    if (res != (uint64_t)NULL)
+        coremu_free(p);
+
+    return res == 0;
 }
 

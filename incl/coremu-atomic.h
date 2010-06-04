@@ -28,6 +28,8 @@
 #ifndef _COREMU_ATOMIC_H
 #define _COREMU_ATOMIC_H
 
+#include <stdint.h>
+
 #define DATA_b uint8_t
 #define DATA_w uint16_t
 #define DATA_l uint32_t
