@@ -33,7 +33,7 @@ typedef struct {
 
 #define SPINLOCK_ATTR static __inline __attribute__((always_inline, no_instrument_function))
 
-SPINLOCK_ATTR int testandset(CMSpinLock *p)
+SPINLOCK_ATTR int __testandset(CMSpinLock *p)
 {
     int readval = 0;
 
@@ -46,7 +46,7 @@ SPINLOCK_ATTR int testandset(CMSpinLock *p)
 
 SPINLOCK_ATTR void coremu_spin_lock(CMSpinLock *lock)
 {
-    while(testandset(lock));
+    while(__testandset(lock));
 }
 
 SPINLOCK_ATTR void coremu_spin_unlock(CMSpinLock *s)
