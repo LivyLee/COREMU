@@ -30,6 +30,8 @@
 
 #define CONFIG_COREMU                   /* whether adapt to coremu */
 
+#define COREMU_MAX_CPU 255              /* the max cpu supported by coremu */
+
 /* Signals used in COREMU */
 #define TIMERRTSIG              SIGRTMIN          /* Timer thread implicit signal */
 #define COREMU_CORE_ALARM       (SIGRTMIN + 1)    /* CORE alarm signal */
