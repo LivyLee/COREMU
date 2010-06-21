@@ -94,7 +94,8 @@
 # define COREMU_THREAD
 #endif
 
-//#define COREMU_LAZY_INVAL              /* enable lazy invalidate tb */
+#define COREMU_LAZY_INVAL              /* enable lazy invalidate tb */
+#define COREMU_FLUSH_TLB               /* enable broadcast flush tlb request */
 
 //#define COREMU_PROFILE                 /* enable profiling for COREMU */
 //#define COREMU_RETRY_PROFILE           /* enable profiling the conflict retry number */

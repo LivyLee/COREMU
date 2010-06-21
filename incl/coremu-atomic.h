@@ -165,6 +165,7 @@ static inline void atomic_inc##type(DATA_##type *p)     \
             : "cc");                                    \
 }
 
+GEN_INC(b);
 GEN_INC(w);
 GEN_INC(l);
 GEN_INC(q);
@@ -183,6 +184,7 @@ static inline void atomic_dec##type(DATA_##type *p)     \
             : "cc");                                    \
 }
 
+GEN_DEC(b);
 GEN_DEC(w);
 GEN_DEC(l);
 GEN_DEC(q);
