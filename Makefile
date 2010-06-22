@@ -52,7 +52,7 @@ qemu-install:
 	$(MAKE) -C $(COREMUDIR)/obj/qemu install
 
 bios-install:
-	cp $(COREMUDIR)/coremubios/seabios/out/bios.bin $(COREMUDIR)/bin/qemu/share/qemu/seabios.bin
+	cp $(COREMUDIR)/bios/seabios/out/bios.bin $(COREMUDIR)/bin/qemu/share/qemu/seabios.bin
 
 clean:
 	$(RM) -rf $(addprefix obj/, $(modules))  $(addprefix bin/, $(modules))

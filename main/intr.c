@@ -113,7 +113,7 @@ static void adjust_intr_threshold(void)
 		    if ((tsc - self->time_stamp) < MIN_SIG_INTERVAL * MAX_THRS_PER_CORE) {    
 			    if (self->intr_thresh_hold < INTR_THRESHOLD * 10)
 				    self->intr_thresh_hold += INTR_THRESHOLD_STEP;
-		    } else if ((tsc - self->time_stamp) > MIN_SIG_INTERVAL * MAX_THRS_PER_CORE) {
+		    } else if ((tsc - self->time_stamp) > MAX_SIG_INTERVAL * MAX_THRS_PER_CORE) {
 			    self->intr_thresh_hold = 0;
 		    } else {
                 self->intr_thresh_hold = self->intr_thresh_hold >> 1;
@@ -170,11 +170,14 @@ void coremu_send_intr(void *e, int coreid)
 
 void coremu_core_signal_handler(int signo, siginfo_t *info, void *context)
 {
+    CMCore* self = coremu_get_core_self();
     adjust_intr_threshold();
     coremu_thread_setpriority(PRIO_PROCESS, 0, 0);
 
     if (event_notifier) {
         event_notifier();
     }
+
+    self->sig_pending = 0;
 }
 
