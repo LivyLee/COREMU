@@ -29,14 +29,21 @@
 #define VERBOSE_COREMU
 
 #include <signal.h>
+#include <stdbool.h>
 #include "utils.h"
 #include "coremu-hw.h"
 #include "coremu-intr.h"
 #include "coremu-sched.h"
 #include "core.h"
 
-#define INTR_NUM_THRESHOLD   50    /* notify a CORE if many pending signals */
-#define INTR_TIME_THRESHOLD  1000   /* 1ms */
+#define INTR_THRESHOLD       10    /* notify a CORE if many pending signals */
+#define INTR_THRESHOLD_STEP  10    
+
+#define MIN_SIG_INTERVAL    5000    /* the minimal signal handler execution interval */
+#define MAX_SIG_INTERVAL    500000
+
+#define MAX_THRS_PER_CORE \
+    (coremu_get_targetcpu() + coremu_get_hostcpu() - 1) / coremu_get_hostcpu()
 
 /* the flag of adpative signal delay */
 int cm_adaptive_intr_delay;
@@ -75,6 +82,45 @@ static void *coremu_get_intr(CMCore *core)
     assert(dequeue(core->intr_queue, &intr));
 
     return (void *)intr;
+}
+
+static void coremu_send_signal(CMCore *core)
+{
+    uint64_t pending_intr = coremu_intr_get_size(core);
+
+    if (!core->sig_pending) {
+        if (!cm_adaptive_intr_delay 
+                || core->state == CM_STATE_HALT
+                || pending_intr > core->intr_thresh_hold 
+                || (core->state == CM_STATE_PAUSE && pending_intr > INTR_THRESHOLD)) {
+
+            core->sig_pending = 1;
+            core->state = CM_STATE_RUN;
+            coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
+            pthread_kill(core->thread, COREMU_SIGNAL);
+        }
+    }
+}
+
+static void adjust_intr_threshold(void)
+{
+    CMCore* self = coremu_get_core_self();
+
+    if(cm_adaptive_intr_delay) {
+	    uint64_t tsc = read_host_tsc();
+
+	    if (self->time_stamp) {
+		    if ((tsc - self->time_stamp) < MIN_SIG_INTERVAL * MAX_THRS_PER_CORE) {    
+			    if (self->intr_thresh_hold < INTR_THRESHOLD * 10)
+				    self->intr_thresh_hold += INTR_THRESHOLD_STEP;
+		    } else if ((tsc - self->time_stamp) > MIN_SIG_INTERVAL * MAX_THRS_PER_CORE) {
+			    self->intr_thresh_hold = 0;
+		    } else {
+                self->intr_thresh_hold = self->intr_thresh_hold >> 1;
+		    }
+	    }
+	    self->time_stamp = tsc;
+    }
 }
 
 event_handler_t event_handler;
@@ -119,56 +165,12 @@ void coremu_send_intr(void *e, int coreid)
             return;
         }
     }
-
-    coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
-    pthread_kill(core->thread, COREMU_SIGNAL);
-
-#if 0
-     uint64_t pending_intr = coremu_intr_get_size(core);
-
-    /*  here need to do somethings that make the thresh hold to be  more smart!!!*/
-    if (core->sig_pending) {
-        if (core->intr_thresh_hold < 100)
-            core->intr_thresh_hold += 10;
-        return;
-    }
-
-    if (!cm_adaptive_intr_delay || core->state==STATE_HALT
-            || pending_intr > core->intr_thresh_hold
-            || (core->state == STATE_PAUSE && pending_intr > 10)) {
-        core->sig_pending = 1;
-        core->state = STATE_RUN;
-
-        coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
-        pthread_kill(core->thread, COREMU_SIGNAL);
-    }
-#endif    
+    coremu_send_signal(core);
 }
 
 void coremu_core_signal_handler(int signo, siginfo_t *info, void *context)
 {
-    CMCore *core = coremu_get_core_self();
-
-    if (cm_adaptive_intr_delay) {
-        uint64_t tsc = read_host_tsc();
-
-        if (core->time_stamp) {
-            //if((tsc - core->time_stamp) < ( R900_CFREQ/100000*4))
-            if ((tsc - core->time_stamp) <
-                    (5000 * (cm_smp_cpus + coremu_get_hostcpu() - 1)/coremu_get_hostcpu())) {
-                if (core->intr_thresh_hold < 100)
-                    core->intr_thresh_hold += 10;
-            } else if ((tsc - core->time_stamp) >
-                    (500000 * (cm_smp_cpus + coremu_get_hostcpu() - 1)/coremu_get_hostcpu())) {
-                core->intr_thresh_hold = 0;
-            } else {
-                core->intr_thresh_hold -= 1;
-            }
-        }
-
-        core->time_stamp = tsc;
-    }
-
+    adjust_intr_threshold();
     coremu_thread_setpriority(PRIO_PROCESS, 0, 0);
 
     if (event_notifier) {

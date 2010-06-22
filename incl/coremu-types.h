@@ -81,6 +81,7 @@ typedef struct CMCore {
     tid_t tid;                           /* kernel process id */
 
     queue_t *intr_queue;                 /* interrupt queue for the core */
+                                         /* adaptive signal control */
     uint64_t time_stamp;                 /* recode the time of intr pending */
     uint64_t intr_thresh_hold;           /* the thresh hold for intr sending */
     uint8_t sig_pending;                 /* if has signal not receive */

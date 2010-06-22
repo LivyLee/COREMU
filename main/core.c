@@ -84,10 +84,13 @@ void coremu_init(int smp_cpus)
 
     /* the adaptive intr delay mechanism works well 
         when core's number is more than 64 (test enviroment R900)*/
+#if 0
     if(cm_smp_cpus > 64)
         cm_adaptive_intr_delay = 1;
     else
         cm_adaptive_intr_delay = 0;
+#endif
+    cm_adaptive_intr_delay = 1;
 
      /* we define the step is 1, if the number of cores
       * is not more than 128 */
