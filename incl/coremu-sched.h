@@ -34,13 +34,10 @@
 
 #include "coremu-types.h"
 
-/* controlling scheduling */
-#define CM_ENABLE_SCHED
-
 #define CM_ENABLE_BIND_CORE
 
 /* bind the vcpu to physical cpu */
-#define CM_BIND_SAME_CORE
+/*#define CM_BIND_SAME_CORE*/
 
 /* bind the near vcpus to the same physcal cpu */
 /*#define CM_BIND_SAME_CORE2*/
@@ -76,14 +73,12 @@ void coremu_init_sched_all(void);
 void coremu_init_sched_core(void);
 
 int coremu_get_hostcpu(void);
+int coremu_get_targetcpu(void);
 int coremu_get_maxprio(void);
 int coremu_get_minprio(void);
 
-/* schedule core threads */
-void coremu_sched(sched_event_t e);
-
-/* schedule hw thread */
-void coremu_hw_sched(sched_hw_event_t e);
+/* schedule core threads according the core state */
+void coremu_cpu_sched(CMSchedEvent e);
 
 #endif /* _COREMU_SCHED_H */
 

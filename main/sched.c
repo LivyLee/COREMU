@@ -35,28 +35,25 @@
 
 int min_prio, max_prio;
 int low_prio, avg_prio, high_prio;
-int init_all_ok = 0;
 int host_cpu_avail = 0;
-
-/* Each thread is modeled as a state in 3 states:
-    1. STATE_HALTED: the core is waiting some evnet to work.
-    2. STATE_CPU: the core is in a cpu-intensive state.
-    3. STATE_IO:  the core is busy doing IO. */
-__thread int cur_state;
-__thread struct timeval start;
-__thread struct timeval end;
-__thread int io_count = 0;
-__thread int cpu_count = 0;
-__thread int hw_io_count = 0;
 
 topo_topology_t topology;
 struct topo_topology_info topoinfo;
 static unsigned int depth;
 static unsigned int cores;
 
+__thread unsigned long int halt_cnt = 0;
+#define HALT_THRESHHOLD     10
+#define HALT_SLEEP_MIN_TIME 10000    // 1000ns = 10us
+#define HALT_SLEEP_MAX_TIME 5000000 // 5000,000ns = 5ms this is the smallest quantum
+
+__thread unsigned long int pause_cnt = 0;
+#define PAUSE_THRESHOLD     100
+#define PAUSE_SLEEP_TIME    100000 // 100,000 ns = 100us
+
+
 static inline void sched_halted(void);
-static inline void sched_cpu(void);
-static inline void sched_io(void);
+static inline void sched_pause(void);
 static void display_thread_sched_attr(char *msg);
 static void topology_init(void);
 static void print_children(topo_topology_t topology, topo_obj_t obj, int depth);
@@ -87,27 +84,6 @@ static void topology_init()
     fprintf(stderr, "----------------------------------------------------------\n");
 }
 
-/*
- *static void topology_bind_hw()
- *{
- *    topo_obj_t obj;
- *    topo_cpuset_t cpuset;
- *
- *    obj = topo_get_obj_by_depth(topology, depth, 0);
- *    cpuset = obj->cpuset;
- *    topo_cpuset_singlify(&cpuset);
- *
- *    if (topo_set_cpubind(topology, &cpuset, TOPO_CPUBIND_THREAD)) {
- *        char s[TOPO_CPUSET_STRING_LENGTH + 1];
- *        topo_cpuset_snprintf(s, sizeof(s), &obj->cpuset);
- *        printf("Couldn't bind to cpuset %s\n", s);
- *        exit(-1);
- *    }
- *
- *    fprintf(stderr, "hw [%lu] binds to %d\n",
- *            (unsigned long int)coremu_gettid() , 0);
- *}
- */
 
 static void topology_bind_core()
 {
@@ -116,60 +92,20 @@ static void topology_bind_core()
     CMCore *self = coremu_get_core_self();
     int index;
 
-#if CM_BIND_SOCKET
-    unsigned int socket_depth;
-    unsigned int socket_num;
-
-    socket_depth = topo_get_type_depth(topology, TOPO_OBJ_SOCKET);
-    socket_num =  topo_get_depth_nbobjs(topology, socket_depth);
-    if (cm_smp_cpus > host_cpu_avail) {
-        int i = cm_smp_cpus/host_cpu_avail;
-        index = (self->serial / i)/socket_num;
-    } else {
-        index = (self->serial % 16) / socket_num;
-
-    }
-    obj = topo_get_obj_by_depth(topology, socket_depth, index);
-
-    assert(obj!=0);
-
+    index = (self->serial % cores);
+ 
+    obj = topo_get_obj_by_depth(topology, depth, index);
     cpuset = obj->cpuset;
+    topo_cpuset_singlify(&cpuset);
 
-    if (topo_set_cpubind(topology, &cpuset, 0)) {
-            char s[TOPO_CPUSET_STRING_LENGTH + 1];
-            topo_cpuset_snprintf(s, sizeof(s), &obj->cpuset);
-            printf("Couldn't bind to cpuset %s\n", s);
+    if (topo_set_cpubind(topology, &cpuset, TOPO_CPUBIND_THREAD)) {
+     char s[TOPO_CPUSET_STRING_LENGTH + 1];
+     topo_cpuset_snprintf(s, sizeof(s), &obj->cpuset);
+     printf("Couldn't bind to cpuset %s\n", s);
+     exit(-1);
     }
 
-#else
-
-#if CM_BIND_SAME_CORE2
-    if(cm_smp_cpus > host_cpu_avail) {
-        int i = cm_smp_cpus/host_cpu_avail;
-        assert(i > 0 );
-        index = (self->serial / i);
-        assert(index < cores );
-    } else {
-        index = (self->serial % cores);
-    }
-#elif defined(CM_BIND_SAME_CORE)
-       index = (self->serial % cores);
-#endif
-
-        obj = topo_get_obj_by_depth(topology, depth, index);
-        cpuset = obj->cpuset;
-        topo_cpuset_singlify(&cpuset);
-
-        if (topo_set_cpubind(topology, &cpuset, TOPO_CPUBIND_THREAD)) {
-            char s[TOPO_CPUSET_STRING_LENGTH + 1];
-            topo_cpuset_snprintf(s, sizeof(s), &obj->cpuset);
-            printf("Couldn't bind to cpuset %s\n", s);
-            exit(-1);
-        }
-
-        fprintf(stderr, "core [%u] binds to %d\n", self->serial, index);
-
-#endif
+    fprintf(stderr, "core [%u] binds to %d\n", self->serial, index);
 
 }
 
@@ -200,13 +136,16 @@ void coremu_init_sched_all()
 
     /* bind hardware thread to the fisrt core */
     //topology_bind_hw();
-    cur_state = STATE_CNT;
-    init_all_ok = 1;
 }
 
 int coremu_get_hostcpu()
 {
     return host_cpu_avail;
+}
+
+int coremu_get_targetcpu()
+{
+    return cm_smp_cpus;
 }
 
 int coremu_get_maxprio()
@@ -237,176 +176,83 @@ void coremu_init_sched_core()
     topology_bind_core();
 #endif
 
-    cur_state = STATE_HALTED;
-    gettimeofday(&start, NULL);
 }
 
-/* Receive some indication of events, and change the
-   scheduling policy/priority of the calling thread.
 
-   Xi Wu (wuxi@fudan.edu.cn) */
-void coremu_sched(sched_event_t e)
+
+void coremu_cpu_sched(CMSchedEvent e)
 {
-#ifdef DEBUG_CM_SCHED
-    cm_assert((init_all_ok == 1),
-              "scheduling support not initialized?");
-    cm_assert(cur_state < STATE_CNT,
-              "invalid state");
-    coremu_assert_not_hw_thr("hw thr call scheduling?");
-#endif
-
-#ifdef CM_ENABLE_SCHED
     switch(e) {
-    case EVENT_HALTED:
-    {
-        sched_halted();
-        break;
-    }
-    case EVENT_CPU:
-    {
-        sched_cpu();
-        break;
-    }
-    case EVENT_IO:
-    {
-        sched_io();
-        break;
-    }
-    default:
-    {
-        assert(0);
-    }
-    }
-#endif
-}
-
-void coremu_hw_sched(sched_hw_event_t e)
-{
-#ifdef CM_ENABLE_SCHED
-    static int hw_high_prio_p = 0;
-    switch(e) {
-    case EVENT_NO_IOREQ:
-    {
-        assert(! setpriority(PRIO_PROCESS, 0, low_prio));
-        hw_high_prio_p = 0;
-        break;
-    }
-    case EVENT_IOREQ:
-    {
-        if(hw_io_count < CM_HW_IO_CNT) {
-            hw_io_count++;
-        }
-
-        if((hw_io_count >= CM_HW_IO_CNT)
-           && (! hw_high_prio_p))
+        case CM_EVENT_HALTED:
         {
-            assert(! setpriority(PRIO_PROCESS,
-                                 0, high_prio));
-            hw_high_prio_p = 1;
+            sched_halted();
+            break;
         }
-
-        break;
+        case CM_EVENT_PAUSE:
+        {
+            sched_pause();
+            break;
+        }
+        default:
+        {
+            assert(0);
+        }
     }
-    default:
-    {
-        assert(0);
-    }
-    }
-#endif
 }
+
 
 /* handle the halted event */
 static inline void sched_halted()
 {
-    if(cur_state != STATE_HALTED) {
-        /* transition from an active state to a halted state,
-           this is likely to last for a while. So we change
-           the prio to lowest value */
-        assert(! setpriority(PRIO_PROCESS, 0, low_prio));
-        io_count = 0; cpu_count = 0;
-        cur_state = STATE_HALTED;
-    }
-}
+    struct timespec halt_interval;
+    CMCore * self = coremu_get_core_self();
+    
+    self->state = CM_STATE_HALT;
+    
 
-/* handle the cpu event */
-static inline void sched_cpu()
-{
-    int prio, new_prio;
-    prio = getpriority(PRIO_PROCESS, 0);
-
-    if(cur_state == STATE_HALTED)
-    {
-        /* transit to active. change the prio to avg.*/
-        assert(! setpriority(PRIO_PROCESS, 0, avg_prio));
-        cur_state = STATE_CPU;
-        cpu_count = 0;
-
-    } else if(cur_state == STATE_IO) {
-
-        /* how long have we not done synchronized IO? */
-        struct timeval elapsed;
-        gettimeofday(&end, NULL);
-        timeval_subtract(&elapsed, &end, &start);
-
-        if(elapsed.tv_sec >= CM_NO_IO_LIMIT) {
-            /* dec the prio to avg */
-            new_prio = avg_prio;
-            assert(! setpriority(PRIO_PROCESS, 0, new_prio));
-
-            cur_state = STATE_CPU;
-            io_count = 0;
-            cpu_count = 0;
-        }
-
-    } else if(cur_state == STATE_CPU) {
-#if 0
-        /* inc the prio for busy working */
-        if(prio > high_prio) {
-            new_prio = MIN((prio - 5), high_prio);
-        } else {
-            new_prio = high_prio;
-        }
-
-        assert(! setpriority(PRIO_PROCESS, 0, new_prio));
-#endif
-
-        cpu_count++;
-        if(cpu_count >= CM_PRIO_CPU_CNT) {
-            new_prio = avg_prio;
-            assert(! setpriority(PRIO_PROCESS, 0, new_prio));
-        }
+    if (halt_cnt < HALT_THRESHHOLD) {
+        halt_cnt++;
+    } else if (halt_cnt < 2 * HALT_THRESHHOLD) {
+        halt_cnt ++;
+        halt_interval.tv_sec = 0;
+        halt_interval.tv_nsec = HALT_SLEEP_MIN_TIME;
+        nanosleep(&halt_interval, NULL);
     } else {
-        assert(0);
+        halt_interval.tv_sec = 0;
+        halt_interval.tv_nsec = HALT_SLEEP_MAX_TIME;
+        nanosleep(&halt_interval, NULL);
+        halt_cnt = 0;
     }
+
+    self->state = CM_STATE_RUN;
+
 }
 
-/* handle the io event */
-static inline void sched_io()
+
+/* handle the pause event */
+static inline void sched_pause()
 {
-    int prio, new_prio;
-    prio = getpriority(PRIO_PROCESS, 0);
+    struct timespec pause_interval;
+    CMCore * self = coremu_get_core_self();
 
-    if(cur_state == STATE_IO) {
+    self->state = CM_STATE_PAUSE;
+    pause_interval.tv_sec = 0;
+    pause_interval.tv_nsec = PAUSE_SLEEP_TIME;
 
-        /* refresh the time of IO */
-        gettimeofday(&start, NULL);
-        io_count++;
-
-        if(io_count >= CM_BONUS_IO_CNT) {
-            /* high bonus for performing sync IO many times. */
-            new_prio = high_prio;
-            assert(! setpriority(PRIO_PROCESS, 0, new_prio));
-        }
-
-    } else if(cur_state == STATE_CPU) {
-        /* refresh the start time of IO */
-        gettimeofday(&start, NULL);
-        io_count = 0;
-        cur_state = STATE_IO;
+    if (pause_cnt < PAUSE_THRESHOLD) {
+        pause_cnt++;
+    } else if (pause_cnt == PAUSE_THRESHOLD + 1) {
+        pause_cnt++;
+        pthread_yield();
     } else {
-        assert(0);
+        nanosleep(&pause_interval, NULL);
+        pause_cnt = 0;
     }
+
+    self->state = CM_STATE_RUN;
+
 }
+
 
 static void display_thread_sched_attr(char *msg)
 {

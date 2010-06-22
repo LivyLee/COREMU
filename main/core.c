@@ -40,8 +40,8 @@
 #include "core.h"
 
 /* pause condition */
-pthread_cond_t pause_cond=COREMU_COND_INITIALIZER;
-pthread_mutex_t pause_mutex=COREMU_LOCK_INITIALIZER;
+pthread_cond_t pause_cond = COREMU_COND_INITIALIZER;
+pthread_mutex_t pause_mutex = COREMU_LOCK_INITIALIZER;
 
 /* coremu cores init related */
 static volatile int init_done = false;
@@ -144,7 +144,7 @@ CMCore *coremu_core_init(int id, void* opaque)
     core->opaque = opaque;
 
     /* step 4: set core state to run */
-    core->state = STATE_RUN;
+    core->state = CM_STATE_RUN;
 
     return core;
 }
@@ -206,10 +206,10 @@ void coremu_pause_core()
 {
     CMCore *self = coremu_get_core_self();
     coremu_mutex_lock(&pause_mutex,"coremu_pause_core");
-    if(self->state==STATE_RUN){
-        self->state=STATE_PAUSE;
+    if(self->state==CM_STATE_RUN){
+        self->state=CM_STATE_PAUSE;
         coremu_cond_wait(&pause_cond, &pause_mutex);
-        self->state=STATE_RUN;
+        self->state=CM_STATE_RUN;
     }
     coremu_mutex_unlock(&pause_mutex,"coremu_pause_core");
 }
@@ -217,7 +217,7 @@ void coremu_pause_core()
 void coremu_wait_pause(CMCore *core)
 {
     coremu_mutex_lock(&pause_mutex,"coremu_wait_pause");
-    while(core->state!=STATE_PAUSE){
+    while(core->state!=CM_STATE_PAUSE){
         coremu_mutex_unlock(&pause_mutex,"coremu_wait_pause");
         coremu_mutex_lock(&pause_mutex,"coremu_wait_pause");
     }

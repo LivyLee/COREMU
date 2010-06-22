@@ -45,19 +45,18 @@ typedef uint64_t cm_ram_addr_t;        /* XXX: kqemu fails for this? */
 /* ************************* Complex types ************************* */
 
 /* State of COREMU CORE */
-typedef enum cm_core_state {
-    STATE_RUN,                           /* NOT halt */
-    STATE_HALT,                          /* Halted state (e.g. execute HLT insn) */
-    STATE_PAUSE,
-} cm_core_state_t;
+typedef enum CMCoreState {
+    CM_STATE_RUN,                           /* NOT halt */
+    CM_STATE_HALT,                          /* Halted state (e.g. execute HLT insn) */
+    CM_STATE_PAUSE,
+} CMCoreState;
 
 /* CORE scheduling type */
-typedef enum sched_event {
-    EVENT_HALTED,
-    EVENT_CPU,
-    EVENT_IO,
-    EVENT_CNT,
-} sched_event_t;
+typedef enum CMSchedEvent {
+    CM_EVENT_HALTED,
+    CM_EVENT_PAUSE,
+    CM_EVENT_CNT,
+} CMSchedEvent;
 
 /* Hardware scheduleing type */
 typedef enum sched_hw_event {
@@ -87,8 +86,8 @@ typedef struct CMCore {
     uint8_t sig_pending;                 /* if has signal not receive */
 
     void *opaque;                        /* CPUState of QEMU */
-    cm_core_state_t state;               /* state of the CORE */
-    cm_timer_debug_t debug_info;         /* Used for timer debug */
+    CMCoreState state;                   /* state of the CORE */
+//    cm_timer_debug_t debug_info;       /* Used for timer debug */
 } CMCore;
 
 typedef struct cm_ioreq_s {
