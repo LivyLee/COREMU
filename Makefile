@@ -17,7 +17,7 @@ include $(addsuffix /module.mk, $(modules))
 
 objects += $(patsubst %.c, $(OBJDIR)/%.o, $(foreach dir, $(modules), $(wildcard $(dir)/*.c)))
 
-all: $(objects) $(programs) $(archive) qemu qemu-install
+all: $(objects) $(programs) $(archive) qemu qemu-install bios-install
 
 install: qemu-install
 
@@ -51,8 +51,12 @@ qemu:
 qemu-install:
 	$(MAKE) -C $(COREMUDIR)/obj/qemu install
 
-bios-install:
-	cp $(COREMUDIR)/bios/seabios/out/bios.bin $(COREMUDIR)/bin/qemu/share/qemu/seabios.bin
+seabios = $(COREMUDIR)/bios/seabios/out/bios.bin
+$(seabios): bios/seabios/src/acpi.c
+	(cd bios/seabios; make)
+
+bios-install: $(seabios)
+	cp $(seabios) $(COREMUDIR)/bin/qemu/share/qemu/seabios.bin
 
 clean:
 	$(RM) -rf $(addprefix obj/, $(modules))  $(addprefix bin/, $(modules))
