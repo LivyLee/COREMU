@@ -91,8 +91,9 @@ static void coremu_send_signal(CMCore *core)
     if (!core->sig_pending) {
         if (!cm_adaptive_intr_delay 
                 || core->state == CM_STATE_HALT
-                || pending_intr > core->intr_thresh_hold 
-                || (core->state == CM_STATE_PAUSE && pending_intr > INTR_THRESHOLD)) {
+                || core->state == CM_STATE_PAUSE
+                || pending_intr > core->intr_thresh_hold) {
+                //|| (core->state == CM_STATE_PAUSE && pending_intr > INTR_THRESHOLD)) {
 
             core->sig_pending = 1;
             core->state = CM_STATE_RUN;

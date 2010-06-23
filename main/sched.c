@@ -51,7 +51,6 @@ __thread unsigned long int pause_cnt = 0;
 #define PAUSE_THRESHOLD     100
 #define PAUSE_SLEEP_TIME    100000 // 100,000 ns = 100us
 
-
 static inline void sched_halted(void);
 static inline void sched_pause(void);
 static void display_thread_sched_attr(char *msg);
@@ -161,13 +160,16 @@ int coremu_get_minprio()
 void coremu_init_sched_core()
 {
     int policy;
+    CMCore* self;
     struct sched_param param;
     assert(! pthread_getschedparam(pthread_self(),
                                    &policy, &param));
     assert(policy == CM_SCHED_POLICY);
 
     //assert(! setpriority(PRIO_PROCESS, 0, avg_prio));
-
+    self = coremu_get_core_self();
+    self->tid = coremu_gettid();
+    
     /* display the scheduling info */
     display_thread_sched_attr("CORE thread scheduler settings:");
 
@@ -235,7 +237,6 @@ static inline void sched_pause()
     struct timespec pause_interval;
     CMCore * self = coremu_get_core_self();
 
-    self->state = CM_STATE_PAUSE;
     pause_interval.tv_sec = 0;
     pause_interval.tv_nsec = PAUSE_SLEEP_TIME;
 
@@ -245,11 +246,12 @@ static inline void sched_pause()
         pause_cnt++;
         pthread_yield();
     } else {
+        self->state = CM_STATE_PAUSE;
         nanosleep(&pause_interval, NULL);
+        self->state = CM_STATE_RUN;
         pause_cnt = 0;
     }
 
-    self->state = CM_STATE_RUN;
 
 }
 

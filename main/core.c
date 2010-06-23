@@ -133,7 +133,7 @@ CMCore *coremu_core_init(int id, void* opaque)
     /* step 1: get the core */
     CMCore *core = &cm_cores[id];
     core->serial = id;
-
+    
     /* step 2: init the hardware event queue and its lock */
     err = pthread_mutexattr_init(&attr);
     cm_assert((err == 0), "cannot init the attribute");
