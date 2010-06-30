@@ -36,21 +36,13 @@
 #include "coremu-sched.h"
 #include "core.h"
 
-#define INTR_THRESHOLD       10    /* notify a CORE if many pending signals */
-#define INTR_THRESHOLD_STEP  10    
+#define MAX_INTR_THRESHOLD       10 
 
 #define MIN_SIG_INTERVAL    5000    /* the minimal signal handler execution interval */
 #define MAX_SIG_INTERVAL    500000
 
 #define MAX_THRS_PER_CORE \
     (coremu_get_targetcpu() + coremu_get_hostcpu() - 1) / coremu_get_hostcpu()
-
-/* the flag of adpative signal delay */
-int cm_adaptive_intr_delay;
-
-/* the step of intr delay, the signal accept time must be
- * more than cm_intr_delay_step * 10us */
-int cm_intr_delay_step;
 
 static inline uint64_t coremu_intr_get_size(CMCore *core)
 {
@@ -88,40 +80,29 @@ static void coremu_send_signal(CMCore *core)
 {
     uint64_t pending_intr = coremu_intr_get_size(core);
 
-    if (!core->sig_pending) {
-        if (!cm_adaptive_intr_delay 
-                || core->state == CM_STATE_HALT
-                || core->state == CM_STATE_PAUSE
-                || pending_intr > core->intr_thresh_hold) {
-                //|| (core->state == CM_STATE_PAUSE && pending_intr > INTR_THRESHOLD)) {
+    if(pending_intr > core->intr_thresh_hold) {
+        if (!core->sig_pending) {
+                core->sig_pending = 1;
+                core->state = CM_STATE_RUN;
+                coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
+                pthread_kill(core->thread, COREMU_SIGNAL);
 
-            core->sig_pending = 1;
-            core->state = CM_STATE_RUN;
-            coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
-            pthread_kill(core->thread, COREMU_SIGNAL);
+        } else {
+            if(core->intr_thresh_hold < MAX_INTR_THRESHOLD)
+                core->intr_thresh_hold++;
         }
     }
+  
+   if(core->state == CM_STATE_PAUSE || core->state == CM_STATE_HALT) {
+        coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
+        pthread_kill(core->thread, COREMU_SIGNAL);
+   }    
 }
 
 static void adjust_intr_threshold(void)
 {
     CMCore* self = coremu_get_core_self();
-
-    if(cm_adaptive_intr_delay) {
-	    uint64_t tsc = read_host_tsc();
-
-	    if (self->time_stamp) {
-		    if ((tsc - self->time_stamp) < MIN_SIG_INTERVAL * MAX_THRS_PER_CORE) {    
-			    if (self->intr_thresh_hold < INTR_THRESHOLD * 10)
-				    self->intr_thresh_hold += INTR_THRESHOLD_STEP;
-		    } else if ((tsc - self->time_stamp) > MAX_SIG_INTERVAL * MAX_THRS_PER_CORE) {
-			    self->intr_thresh_hold = 0;
-		    } else {
-                self->intr_thresh_hold = self->intr_thresh_hold >> 1;
-		    }
-	    }
-	    self->time_stamp = tsc;
-    }
+    self->intr_thresh_hold = 0;
 }
 
 event_handler_t event_handler;

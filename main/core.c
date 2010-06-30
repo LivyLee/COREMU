@@ -53,12 +53,6 @@ static pthread_attr_t thr_attr;
 /* coremu retry profiling */
 __thread unsigned long int cm_retry_num = 0;
 
-/* the per core signal blocking set */
-//__thread sigset_t cm_blk_sigset;
-
-extern int cm_adaptive_intr_delay;
-extern int cm_intr_delay_step;
-
 /* Number of cores. */
 int cm_smp_cpus;
 /* Array holding all the core object. */
@@ -81,21 +75,6 @@ void coremu_init(int smp_cpus)
 
     /* step 0: init scheduling support */
     coremu_init_sched_all();
-
-    /* the adaptive intr delay mechanism works well 
-        when core's number is more than 64 (test enviroment R900)*/
-#if 0
-    if(cm_smp_cpus > 64)
-        cm_adaptive_intr_delay = 1;
-    else
-        cm_adaptive_intr_delay = 0;
-#endif
-    cm_adaptive_intr_delay = 1;
-
-     /* we define the step is 1, if the number of cores
-      * is not more than 128 */
-     if(cm_adaptive_intr_delay)
-        cm_intr_delay_step = (cm_smp_cpus + 127)/128;
 
     /* step 1: init the global core array */
     cm_cores = (CMCore *) coremu_mallocz(cm_smp_cpus * sizeof(*cm_cores));
