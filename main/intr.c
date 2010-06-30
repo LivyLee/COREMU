@@ -38,12 +38,6 @@
 
 #define MAX_INTR_THRESHOLD       10 
 
-#define MIN_SIG_INTERVAL    5000    /* the minimal signal handler execution interval */
-#define MAX_SIG_INTERVAL    500000
-
-#define MAX_THRS_PER_CORE \
-    (coremu_get_targetcpu() + coremu_get_hostcpu() - 1) / coremu_get_hostcpu()
-
 static inline uint64_t coremu_intr_get_size(CMCore *core)
 {
     return ms_queue_get_size(core->intr_queue);
@@ -93,7 +87,7 @@ static void coremu_send_signal(CMCore *core)
         }
     }
   
-   if(core->state == CM_STATE_PAUSE || core->state == CM_STATE_HALT) {
+   if(core->state == CM_STATE_HALT || core->state == CM_STATE_PAUSE) {
         coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
         pthread_kill(core->thread, COREMU_SIGNAL);
    }    

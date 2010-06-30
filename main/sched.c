@@ -147,6 +147,11 @@ int coremu_get_targetcpu()
     return cm_smp_cpus;
 }
 
+int coremu_get_thrs_per_core()
+{
+    return (host_cpu_avail + cm_smp_cpus - 1)/host_cpu_avail;
+}
+
 int coremu_get_maxprio()
 {
     return high_prio;
