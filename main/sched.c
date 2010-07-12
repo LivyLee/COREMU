@@ -171,7 +171,7 @@ void coremu_init_sched_core()
                                    &policy, &param));
     assert(policy == CM_SCHED_POLICY);
 
-    //assert(! setpriority(PRIO_PROCESS, 0, avg_prio));
+    coremu_thread_setpriority(PRIO_PROCESS, 0, avg_prio);
     self = coremu_get_core_self();
     self->tid = coremu_gettid();
     
@@ -215,8 +215,10 @@ static inline void sched_halted()
     CMCore * self = coremu_get_core_self();
     
     self->state = CM_STATE_HALT;
-    
-
+    halt_interval.tv_sec = 0;
+    halt_interval.tv_nsec = HALT_SLEEP_MAX_TIME;
+    nanosleep(&halt_interval, NULL);
+#if 0    
     if (halt_cnt < HALT_THRESHHOLD) {
         halt_cnt++;
     } else if (halt_cnt < 2 * HALT_THRESHHOLD) {
@@ -230,6 +232,7 @@ static inline void sched_halted()
         nanosleep(&halt_interval, NULL);
         halt_cnt = 0;
     }
+#endif
 
     self->state = CM_STATE_RUN;
 
@@ -247,7 +250,7 @@ static inline void sched_pause()
 
     if (pause_cnt < PAUSE_THRESHOLD) {
         pause_cnt++;
-    } else if (pause_cnt == PAUSE_THRESHOLD + 1) {
+    } else if (pause_cnt <= PAUSE_THRESHOLD + 1) {
         pause_cnt++;
         pthread_yield();
     } else {

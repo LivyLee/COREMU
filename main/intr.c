@@ -36,7 +36,7 @@
 #include "coremu-sched.h"
 #include "core.h"
 
-#define MAX_INTR_THRESHOLD       10 
+#define MAX_INTR_THRESHOLD       50 
 
 static inline uint64_t coremu_intr_get_size(CMCore *core)
 {
@@ -83,7 +83,7 @@ static void coremu_send_signal(CMCore *core)
 
         } else {
             if(core->intr_thresh_hold < MAX_INTR_THRESHOLD)
-                core->intr_thresh_hold++;
+                core->intr_thresh_hold = (core->intr_thresh_hold + 1)<< 1;
         }
     }
   
@@ -96,7 +96,14 @@ static void coremu_send_signal(CMCore *core)
 static void adjust_intr_threshold(void)
 {
     CMCore* self = coremu_get_core_self();
-    self->intr_thresh_hold = 0;
+    uint64_t tsc = read_host_tsc();
+    if(self->time_stamp) {
+        if((tsc - self->time_stamp) > 5000000)
+            self->intr_thresh_hold = 0;
+        else if(self->intr_thresh_hold > 0)
+            self->intr_thresh_hold--;
+    }
+    self->time_stamp = tsc;
 }
 
 event_handler_t event_handler;
@@ -148,7 +155,7 @@ void coremu_core_signal_handler(int signo, siginfo_t *info, void *context)
 {
     CMCore* self = coremu_get_core_self();
     adjust_intr_threshold();
-    coremu_thread_setpriority(PRIO_PROCESS, 0, 0);
+    coremu_thread_setpriority(PRIO_PROCESS, 0, avg_prio);
 
     if (event_notifier) {
         event_notifier();
