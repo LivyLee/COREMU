@@ -37,7 +37,7 @@
 #include "core.h"
 
 #define MAX_INTR_THRESHOLD       50 
-#define SIG_HANDLE_INTERVAL      2500000 * (coremu_get_thrs_per_core() / 8)
+#define SIG_HANDLE_INTERVAL      (2500000 * (coremu_get_thrs_per_core() / 8))
 
 static inline uint64_t coremu_intr_get_size(CMCore *core)
 {
@@ -61,6 +61,9 @@ static inline void coremu_put_intr(CMCore *core, void *e)
 static void *coremu_get_intr(CMCore *core)
 {
     unsigned long intr;
+    if (!coremu_intr_p(core))
+        return NULL;
+
     /* XXX the queue implementation may have bug.
      * It shouldn't be empty when there're pending interrupts. */
     if(!dequeue(core->intr_queue, &intr))
@@ -121,8 +124,14 @@ void coremu_receive_intr()
 {
     CMCore *core = coremu_get_core_self();
     void *intr = NULL;
+    
+#if 0    
+    if(event_handler)
+        while(coremu_intr_p(core))
+            event_handler(coremu_get_intr(core));
+#endif
     if (event_handler) {
-        while (intr = coremu_get_intr(core)) {
+        while ((intr = coremu_get_intr(core))!=NULL) {
         /* call registed interrupt handler */
             event_handler(intr);
         }
