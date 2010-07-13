@@ -75,24 +75,24 @@ static void *coremu_get_intr(CMCore *core)
 static void coremu_send_signal(CMCore *core)
 {
     uint64_t pending_intr = coremu_intr_get_size(core);
+    uint64_t send_sig_p = 0;
 
     if(pending_intr > core->intr_thresh_hold) {
         if (!core->sig_pending) {
                 core->sig_pending = 1;
                 core->state = CM_STATE_RUN;
-                coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
-                pthread_kill(core->thread, COREMU_SIGNAL);
-
+                send_sig_p = 1;
         } else {
             if(core->intr_thresh_hold < MAX_INTR_THRESHOLD)
                 core->intr_thresh_hold = (core->intr_thresh_hold + 1)<< 1;
         }
     }
-  
-   if(core->state == CM_STATE_HALT || core->state == CM_STATE_PAUSE) {
+    
+   if( coremu_physical_core_enough_p() || send_sig_p || 
+            core->state == CM_STATE_HALT || core->state == CM_STATE_PAUSE) {
         coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
         pthread_kill(core->thread, COREMU_SIGNAL);
-   }    
+   }
 }
 
 static void adjust_intr_threshold(void)

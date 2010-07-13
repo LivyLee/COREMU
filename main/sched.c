@@ -152,6 +152,11 @@ int coremu_get_thrs_per_core()
     return (host_cpu_avail + cm_smp_cpus - 1)/host_cpu_avail;
 }
 
+int coremu_physical_core_enough_p()
+{
+    return host_cpu_avail >= cm_smp_cpus;
+}
+    
 int coremu_get_maxprio()
 {
     return high_prio;
@@ -161,6 +166,7 @@ int coremu_get_minprio()
 {
     return low_prio;
 }
+
 
 void coremu_init_sched_core()
 {

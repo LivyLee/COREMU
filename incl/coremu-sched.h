@@ -75,6 +75,7 @@ void coremu_init_sched_core(void);
 int coremu_get_hostcpu(void);
 int coremu_get_targetcpu(void);
 int coremu_get_thrs_per_core(void);
+int coremu_physical_core_enough_p(void);
 int coremu_get_maxprio(void);
 int coremu_get_minprio(void);
 
