@@ -130,7 +130,7 @@ void coremu_init_sched_all()
     //assert(! setpriority(PRIO_PROCESS, 0, high_prio));
     //assert(! sched_setscheduler(0, SCHED_RR, NULL));
     display_thread_sched_attr("MAIN thread scheduling settings:");
-
+    coremu_thread_setpriority(PRIO_PROCESS, 0, high_prio);
     topology_init();
 
     /* bind hardware thread to the fisrt core */
@@ -218,22 +218,6 @@ static inline void sched_halted()
     halt_interval.tv_sec = 0;
     halt_interval.tv_nsec = HALT_SLEEP_MAX_TIME;
     nanosleep(&halt_interval, NULL);
-#if 0    
-    if (halt_cnt < HALT_THRESHHOLD) {
-        halt_cnt++;
-    } else if (halt_cnt < 2 * HALT_THRESHHOLD) {
-        halt_cnt ++;
-        halt_interval.tv_sec = 0;
-        halt_interval.tv_nsec = HALT_SLEEP_MIN_TIME;
-        nanosleep(&halt_interval, NULL);
-    } else {
-        halt_interval.tv_sec = 0;
-        halt_interval.tv_nsec = HALT_SLEEP_MAX_TIME;
-        nanosleep(&halt_interval, NULL);
-        halt_cnt = 0;
-    }
-#endif
-
     self->state = CM_STATE_RUN;
 
 }

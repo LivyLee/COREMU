@@ -37,6 +37,7 @@
 #include "core.h"
 
 #define MAX_INTR_THRESHOLD       50 
+#define SIG_HANDLE_INTERVAL      2500000 * (coremu_get_thrs_per_core() / 8)
 
 static inline uint64_t coremu_intr_get_size(CMCore *core)
 {
@@ -59,13 +60,11 @@ static inline void coremu_put_intr(CMCore *core, void *e)
  * Signal-unsafe. block the signal in the lock free function */
 static void *coremu_get_intr(CMCore *core)
 {
-    if (!coremu_intr_p(core))
-        return NULL;
-
     unsigned long intr;
     /* XXX the queue implementation may have bug.
      * It shouldn't be empty when there're pending interrupts. */
-    assert(dequeue(core->intr_queue, &intr));
+    if(!dequeue(core->intr_queue, &intr))
+        return NULL;
 
     return (void *)intr;
 }
@@ -98,7 +97,7 @@ static void adjust_intr_threshold(void)
     CMCore* self = coremu_get_core_self();
     uint64_t tsc = read_host_tsc();
     if(self->time_stamp) {
-        if((tsc - self->time_stamp) > 5000000)
+        if((tsc - self->time_stamp) > SIG_HANDLE_INTERVAL) 
             self->intr_thresh_hold = 0;
         else if(self->intr_thresh_hold > 0)
             self->intr_thresh_hold--;
@@ -121,10 +120,12 @@ void coremu_register_event_notifier(event_notifier_t fn)
 void coremu_receive_intr()
 {
     CMCore *core = coremu_get_core_self();
-    while (coremu_intr_p(core)) {
+    void *intr = NULL;
+    if (event_handler) {
+        while (intr = coremu_get_intr(core)) {
         /* call registed interrupt handler */
-        if (event_handler)
-            event_handler(coremu_get_intr(core));
+            event_handler(intr);
+        }
     }
 }
 
