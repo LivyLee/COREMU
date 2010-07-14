@@ -25,6 +25,7 @@
 #ifndef _COREMU_MALLOC_H
 #define _COREMU_MALLOC_H
 
+#include <sys/types.h>
 void *coremu_malloc(size_t size);
 void *coremu_mallocz(size_t size);
 void *coremu_realloc(void * ptr, size_t size);

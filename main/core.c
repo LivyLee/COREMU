@@ -169,7 +169,7 @@ void coremu_wait_init(void)
     struct timespec tsp;
     tsp.tv_sec = 0;
     tsp.tv_nsec = 1000000; /* 1 milli-second per check */
-    while (! init_done) {
+    while (!init_done) {
         nanosleep(&tsp, NULL);
     }
 }
