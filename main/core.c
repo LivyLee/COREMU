@@ -206,6 +206,14 @@ void coremu_wait_pause(CMCore *core)
     coremu_mutex_unlock(&pause_mutex,"coremu_wait_pause");
 }
 
+void coremu_wait_all_cores_pause(void)
+{	
+    int i;
+    for(i=0;i<cm_smp_cpus;i++){
+        coremu_wait_pause(&cm_cores[i]);
+    }
+}
+
 void coremu_restart_all_cores()
 {
     coremu_cond_broadcast(&pause_cond);
