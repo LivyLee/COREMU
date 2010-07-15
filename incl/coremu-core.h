@@ -31,7 +31,7 @@
 
 /* Init a core in COREMU. Basically, coremu core contains
  * a emulator specific data opaque. */
-CMCore *coremu_core_init(int id, void *opaque);
+void coremu_core_init(int id, void *opaque);
 
 /* Run all cores with THR_FN as the start function.
  * The thread function will be passed the opaque object when calling

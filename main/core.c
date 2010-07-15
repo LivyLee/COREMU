@@ -105,7 +105,7 @@ void coremu_init(int smp_cpus)
     sigaction(COREMU_SIGNAL, &act, NULL);
 }
 
-CMCore *coremu_core_init(int id, void* opaque)
+void coremu_core_init(int id, void* opaque)
 {
     int err = 0;
 
@@ -128,7 +128,6 @@ CMCore *coremu_core_init(int id, void* opaque)
     /* step 4: set core state to run */
     core->state = CM_STATE_RUN;
 
-    return core;
 }
 
 void coremu_run_all_cores(thr_start_routine thr_fn)
