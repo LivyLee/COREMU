@@ -1,39 +1,84 @@
-#!/bin/bash
+#!/bin/sh
 
 usage() {
-    echo "Usage: configure <path to patched qemu source code> <target>"
+    cat <<EOF
+Usage: ./configure [options] <qemusrc>
+
+Options:
+    --prefix=<path>    Install location, default is ./bin
+    --use-lockqueue    Use lock based concurrent queue instead of lock free version
+    --target=<target>  Targets will be built, supports x86_64 and arm. x86_64 is default.
+                       This option can be used for more than one time to build
+                       more than one target.
+EOF
 }
 
-if [[ $# != 2 ]]; then
+lockqueue="false"
+# parse options
+for opt do
+  optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
+  case "$opt" in
+    --prefix=*) prefix="$optarg"
+    ;;
+    --qemusrc=*) qemusrc="$optarg"
+    ;;
+    --use-lockqueue) lockqueue="true"
+    ;;
+    --target=*)
+    if [ -z $target ]; then
+      target="$optarg-softmmu"
+    else
+      target=$target",$optarg-softmmu"
+    fi
+    ;;
+    --help)
     usage
-    exit 1
+    exit 0
+    ;;
+    *) qemusrc=$opt
+    ;;
+  esac
+done
+
+if [ -z $qemusrc ]; then
+  usage
+  exit 1
 fi
 
-target=$2
-qemusrc=`cd $1; pwd`
+if [ -z $target ]; then
+  target="x86_64-softmmu"
+fi
+
+if [ -z $prefix ]; then
+  prefix=`pwd`/bin
+fi
+
 coremuroot=`pwd`
+# absolute path to qemu src
+qemusrc=`cd $qemusrc; pwd`
+
+echo '***** [QEMU-git for COREMU build] *****'
+echo "target:    $target"
+echo "prefix:    $prefix"
+echo "qemusrc:   $qemusrc"
+echo "lockqueue: $lockqueue"
+#exit 1
 
 mkdir -p obj/qemu
-mkdir -p bin/qemu
 
 echo "QEMUSRC := ${qemusrc}" > coremu.mk
 echo "TARGET := ${target}" >> coremu.mk
-echo "LOCKFREE := true" >> coremu.mk
+echo "PREFIXDIR := ${prefix}" >> coremu.mk
+if [ -n $lockqueue  ]; then
+  echo "LOCKFREE := true" >> coremu.mk
+fi
+
 echo "COREMU_LIB = ${coremuroot}/obj/libcoremu.a" > ${qemusrc}/coremu.mk
 
-echo '***** [QEMU-git for COREMU build] *****'
-
 cd ${coremuroot}/obj/qemu
-${qemusrc}/configure --prefix=${coremuroot}/bin/qemu \
+${qemusrc}/configure --prefix=${prefix} \
     --disable-kvm \
     --disable-docs \
-    --extra-cflags="-I${coremuroot}/incl -g\
-            -I${coremuroot}/obj/qemu \
-            -I${coremuroot}/obj/qemu/${target}-softmmu" \
-    --target-list="${target}-softmmu" \
+    --extra-cflags="-I${coremuroot}/incl -g" \
+    --target-list="${target}" \
     --disable-werror \
-
-make config-host.h
-cd ${target}-softmmu
-make config-target.h
-

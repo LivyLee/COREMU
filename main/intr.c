@@ -39,14 +39,14 @@
 #define MAX_INTR_THRESHOLD       50 
 #define SIG_HANDLE_INTERVAL      (2500000 * (coremu_get_thrs_per_core() / 8))
 
-static inline uint64_t coremu_intr_get_size(CMCore *core)
+static inline int64_t coremu_intr_get_size(CMCore *core)
 {
     return queue_get_size(core->intr_queue);
 }
 
 static inline int coremu_intr_p(CMCore *core)
 {
-    return coremu_intr_get_size(core) != 0;
+    return coremu_intr_get_size(core) > 0;
 }
 
 /* Insert an intrrupt into queue.
@@ -73,7 +73,7 @@ static void *coremu_get_intr(CMCore *core)
 
 static void coremu_send_signal(CMCore *core)
 {
-    uint64_t pending_intr = coremu_intr_get_size(core);
+    int64_t pending_intr = coremu_intr_get_size(core);
     uint64_t send_sig_p = 0;
 
     if(pending_intr > core->intr_thresh_hold) {

@@ -37,13 +37,6 @@ else
 endif
 LIBOBJS += $(OBJDIR)/main/utils.o
 
-# No longer used. We do this in configure.
-#header: $(OBJDIR)/qemu/config-host.h $(OBJDIR)/qemu/arm-softmmu/config-target.h
-#$(OBJDIR)/qemu/config-host.h:
-	#$(MAKE) -C $(COREMUDIR)/obj/qemu/ config-host.h
-#$(OBJDIR)/qemu/arm-softmmu/config-target.h:
-	#$(MAKE) -C $(COREMUDIR)/obj/qemu/arm-softmmu config-target.h
-
 $(OBJDIR)/libcoremu.a: $(LIBOBJS)
 	$(call quiet-command,rm -f $@ && $(AR) rcs $@ $^,"  AR    $(TARGET_DIR)$@")
 qemu:
@@ -58,7 +51,8 @@ $(seabios): bios/seabios/src/acpi.c
 	(cd bios/seabios; make)
 
 bios-install: $(seabios)
-	cp $(seabios) $(COREMUDIR)/bin/qemu/share/qemu/seabios.bin
+	mkdir -p $(PREFIXDIR)
+	cp $(seabios) $(PREFIXDIR)/share/qemu/seabios.bin
 
 clean:
 	$(RM) -rf $(addprefix obj/, $(modules))  $(addprefix bin/, $(modules))
