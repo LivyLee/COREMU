@@ -41,7 +41,7 @@
 
 static inline uint64_t coremu_intr_get_size(CMCore *core)
 {
-#if COREMU_LOCKFREE
+#ifdef COREMU_LOCKFREE
     return ms_queue_get_size(core->intr_queue);
 #else
     return fifo_queue_get_size(core->intr_queue);
@@ -57,7 +57,7 @@ static inline int coremu_intr_p(CMCore *core)
  * Signal-unsafe. block the signal in the lock free function */
 static inline void coremu_put_intr(CMCore *core, void *e)
 {
-#if COREMU_LOCKFREE
+#ifdef COREMU_LOCKFREE
     enqueue(core->intr_queue, (long) e);
 #else
     l_enqueue(core->intr_queue, (long) e);
@@ -74,7 +74,7 @@ static void *coremu_get_intr(CMCore *core)
 
     /* XXX the queue implementation may have bug.
      * It shouldn't be empty when there're pending interrupts. */
-#if COREMU_LOCKFREE
+#ifdef COREMU_LOCKFREE
     if(!dequeue(core->intr_queue, &intr))
         return NULL;
 #else
