@@ -28,8 +28,12 @@
 #define _CM_TYPES_H
 
 #include "coremu-config.h"
-#include "ms-queue.h"
 
+#ifdef COREMU_LOCKFREE
+#include "ms-queue.h"
+#else
+#include "fifo-queue.h"
+#endif
 /* ************************* Base types ************************* */
 #define true 1
 #define false 0
@@ -79,11 +83,14 @@ typedef struct CMCore {
     uint32_t serial;                     /* number start from 0 */
     pthread_t thread;                    /* ID of the core */
     tid_t tid;                           /* kernel process id */
-
+#ifdef COREMU_LOCKFREE    
     queue_t *intr_queue;                 /* interrupt queue for the core */
-                                         /* adaptive signal control */
+#else
+    lqueue_t *intr_queue;
+#endif
+    /* adaptive signal control */
     uint64_t time_stamp;                 /* recode the time of intr pending */
-    uint64_t intr_thresh_hold;           /* the thresh hold for intr sending */
+    int64_t intr_thresh_hold;           /* the thresh hold for intr sending */
     uint8_t sig_pending;                 /* if has signal not receive */
 
     void *opaque;                        /* CPUState of QEMU */

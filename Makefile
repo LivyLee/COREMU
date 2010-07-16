@@ -30,6 +30,7 @@ LIBOBJS += $(OBJDIR)/main/sched.o
 LIBOBJS += $(OBJDIR)/main/timer.o
 LIBOBJS += $(OBJDIR)/main/intr.o
 LIBOBJS += $(OBJDIR)/main/malloc-helper.o
+LIBOBJS += $(OBJDIR)/main/fifo-queue.o
 LIBOBJS += $(OBJDIR)/main/ms-queue.o
 LIBOBJS += $(OBJDIR)/main/utils.o
 

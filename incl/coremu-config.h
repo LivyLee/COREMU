@@ -39,62 +39,16 @@
 #define COREMU_SIGNAL           (SIGRTMIN + 3)    /* COREMU Interrupts */
 #define COREMU_AIO_SIG          (SIGRTMIN + 4)    /* Aynchrous I/O (e.g. DMA) */
 
-//#define TIMER_THREAD_ENABLE             /* use timer thread for per-thread timing? */
-
-/* There are 3 choices for atomic instruction emulation
- * for COREMU parallel emulator:
- * 1. QEMU global 'big' lock (slow, wrong for parallel emulation)
- * 2. COREMU bus lock (much faster, yet still slow, buggy)
- * 3. Atomic emulation using CAS1 (currently the best method)
- *
- * NOTE: there can only be one TRUE flag for each configuration.
- */
-
-//#define USE_QEMU_LOCK                   /* global lock */
-//#define USE_BUS_LOCK                    /* COREMU bus lock support */
-#define USE_ATOM_CAS1                   /* CAS1 support */
-
-#ifdef USE_QEMU_LOCK
-# ifdef USE_BUS_LOCK
-#  error "global lock has been enable, turn off bus lock or atom impl"
-# endif
-# ifdef USE_ATOM_CAS1
-#  error "global lock has been enable, turn off bus lock or atom impl"
-# endif
-#else  /* ! USE_QEMU_LOCK */
-# if defined(USE_BUS_LOCK) && defined(USE_ATOM_CAS1)
-#  error "cannot enable both bus lock and atom impl"
-# elif (! defined(USE_BUS_LOCK)) && (! defined(USE_ATOM_CAS1))
-#  error "must choose one among qemu_lock, bus_lock and atom impl"
-# endif
-#endif
-
-/* There are 2 choices for handling synchrous I/O:
- * 1. use nonblocking queue to serialize all requests.
- * 2. only use a lock to serialize request on each processor.
- *    (a lock for each device?)
- */
-
-//#define IOREQ_LOCK_FREE                /* sync I/O using lock-free queue */
-#define IOREQ_SYNC                     /* sync I/O using per-core locking */
-
-#ifdef IOREQ_LOCK_FREE
-# ifdef IOREQ_SYNC
-#  error "lock-free and lock-sync I/O both enabled, only one can be used"
-# endif
-#else  /* ! IOREQ_LOCK_FREE */
-# ifndef IOREQ_SYNC
-#  error "must choose one between IOREQ_LOCK_FREE and IOREQ_SYNC"
-# endif
-#endif
-
 #ifdef CONFIG_COREMU
 # define COREMU_THREAD __thread         /* coremu per-core struct */
 #else
 # define COREMU_THREAD
 #endif
 
-//define COREMU_CMC_SUPPORT              /* enable lazy invalidate tb */
+/* Use lock free queue to hold the interrupt 
+   event between cores and devices thread */
+#define COREMU_LOCKFREE                     
+//#define COREMU_CMC_SUPPORT              /* enable lazy invalidate tb */
 //#define COREMU_FLUSH_TLB               /* enable broadcast flush tlb request */
 
 //#define COREMU_PROFILE                 /* enable profiling for COREMU */

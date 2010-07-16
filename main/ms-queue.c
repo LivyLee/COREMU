@@ -28,8 +28,20 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
-
-#include "utils.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <time.h>
+#include <string.h>
+#include <pthread.h>
+#include <signal.h>
+#include <sys/queue.h>
+#include <sys/types.h>
+#include <stdbool.h>
+#include "ms-queue.h"
 
 #if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
     /* this is ok */
