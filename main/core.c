@@ -34,7 +34,6 @@
 #include "coremu-hw.h"
 #include "coremu-timer.h"
 #include "coremu-sched.h"
-#include "coremu-hw-lockfree.h"
 #include "coremu-intr.h"
 #include "coremu-malloc.h"
 #include "core.h"

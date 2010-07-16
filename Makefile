@@ -26,8 +26,6 @@ coremu: $(objects) $(programs)
 
 LIBOBJS =  $(OBJDIR)/main/core.o
 LIBOBJS += $(OBJDIR)/main/hw.o
-LIBOBJS += $(OBJDIR)/main/hw-backend.o
-LIBOBJS += $(OBJDIR)/main/hw-frontend.o
 LIBOBJS += $(OBJDIR)/main/sched.o
 LIBOBJS += $(OBJDIR)/main/timer.o
 LIBOBJS += $(OBJDIR)/main/intr.o
