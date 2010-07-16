@@ -45,9 +45,6 @@
 # define COREMU_THREAD
 #endif
 
-/* Use lock free queue to hold the interrupt 
-   event between cores and devices thread */
-#define COREMU_LOCKFREE                     
 //#define COREMU_CMC_SUPPORT              /* enable lazy invalidate tb */
 //#define COREMU_FLUSH_TLB               /* enable broadcast flush tlb request */
 

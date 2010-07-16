@@ -4,6 +4,8 @@
  * Interfaces for manipulating interrupts in COREMU. (e.g. interrupt from
  * device to core, and IPI between cores).
  *
+ * This implementation uses lock to protect multiple thread doing enqueue.
+ *
  * Copyright (C) 2010 PPI, Fudan Univ. <http://ppi.fudan.edu.cn/system_research_group>
  *
  * Authors:
@@ -24,28 +26,49 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
+
+#include <malloc.h>
 #include <stdbool.h>
 #include <signal.h>
 #include <assert.h>
-#include "fifo-queue.h"
+
+#include "queue.h"
 #include "coremu-atomic.h"
 #include "coremu-malloc.h"
+#include "coremu-spinlock.h"
 
-static void fifo_initialize(lqueue_t *Q)
+typedef struct node_t {
+    struct node_t *next;            /* the next node, together with the tag */
+    data_type value;           /* an integer which can hold a pointer */
+} node_t;
+
+struct queue_t {
+    node_t *Head;            /* head of the queue */
+    node_t *Tail;            /* tail of the queue */
+    uint64_t count;
+    CMSpinLock t_lock;
+};
+
+static node_t *new_node(void)
 {
-    lnode_t *lnode = new_lnode();                               /* Allocate a free node */
-    lnode->next = NULL;                                  
- 
-    Q->Head = lnode;                                      /* Both Head and Tail point to it */
-    Q->Tail = lnode;
+    return coremu_mallocz(sizeof(node_t));
+}
+
+static void initialize(queue_t *Q)
+{
+    node_t *node = new_node();                               /* Allocate a free node */
+    node->next = NULL;
+
+    Q->Head = node;                                      /* Both Head and Tail point to it */
+    Q->Tail = node;
     Q->count = 0;
     CM_SPIN_LOCK_INIT(&Q->t_lock);
 }
 
-lqueue_t *new_lqueue(void)
+queue_t *new_queue(void)
 {
-    lqueue_t *Q = coremu_mallocz(sizeof(lqueue_t));
-    fifo_initialize(Q);                                          
+    queue_t *Q = coremu_mallocz(sizeof(queue_t));
+    initialize(Q);
 
     assert(Q->Head != NULL);
     assert(Q->Tail!= NULL);
@@ -54,42 +77,40 @@ lqueue_t *new_lqueue(void)
     return Q;
 }
 
-lnode_t *new_lnode(void)
-{
-    lnode_t *node = coremu_mallocz(sizeof(lnode_t));         
-}
-
-
 /* The interface for queue with lock */
-void l_enqueue(lqueue_t *Q, data_type value)
+void enqueue(queue_t *Q, data_type value)
 {
-    lnode_t *lnode = new_lnode();                              
-    lnode->value = value;                                 
-    lnode->next = NULL;                                 
+    node_t *node = new_node();
+    node->value = value;
+    node->next = NULL;
 
     coremu_spin_lock(&Q->t_lock);
-    Q->Tail->next = lnode;
-    Q->Tail = lnode;
+    Q->Tail->next = node;
+    Q->Tail = node;
     atomic_incq(&Q->count);
     coremu_spin_unlock(&Q->t_lock);
 }
 
-bool l_dequeue(lqueue_t *Q, data_type *value_p)
+bool dequeue(queue_t *Q, data_type *value_p)
 {
-    lnode_t *lnode = Q->Head;
-    lnode_t *new_head = lnode->next;
+    node_t *node = Q->Head;
+    node_t *new_head = node->next;
     if (!new_head)
-        return false; 
-    
+        return false;
+
     *value_p = new_head->value;
     Q->Head = new_head;
-    coremu_free(lnode);
+    coremu_free(node);
     atomic_decq(&Q->count);
     return true;
 }
 
-int64_t fifo_queue_get_size(lqueue_t *Q)
+int64_t queue_get_size(queue_t *Q)
 {
     return Q->count;
 }
 
+char *queue_version()
+{
+    return "spinlock based concurrent queue";
+}

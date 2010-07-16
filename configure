@@ -18,6 +18,7 @@ mkdir -p bin/qemu
 
 echo "QEMUSRC := ${qemusrc}" > coremu.mk
 echo "TARGET := ${target}" >> coremu.mk
+echo "LOCKFREE := true" >> coremu.mk
 echo "COREMU_LIB = ${coremuroot}/obj/libcoremu.a" > ${qemusrc}/coremu.mk
 
 echo '***** [QEMU-git for COREMU build] *****'

@@ -30,8 +30,11 @@ LIBOBJS += $(OBJDIR)/main/sched.o
 LIBOBJS += $(OBJDIR)/main/timer.o
 LIBOBJS += $(OBJDIR)/main/intr.o
 LIBOBJS += $(OBJDIR)/main/malloc-helper.o
-LIBOBJS += $(OBJDIR)/main/fifo-queue.o
-LIBOBJS += $(OBJDIR)/main/ms-queue.o
+ifdef LOCKFREE
+	LIBOBJS += $(OBJDIR)/main/ms-queue.o
+else
+	LIBOBJS += $(OBJDIR)/main/lock-queue.o
+endif
 LIBOBJS += $(OBJDIR)/main/utils.o
 
 # No longer used. We do this in configure.

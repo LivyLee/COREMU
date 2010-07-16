@@ -41,11 +41,7 @@
 
 static inline uint64_t coremu_intr_get_size(CMCore *core)
 {
-#ifdef COREMU_LOCKFREE
-    return ms_queue_get_size(core->intr_queue);
-#else
-    return fifo_queue_get_size(core->intr_queue);
-#endif
+    return queue_get_size(core->intr_queue);
 }
 
 static inline int coremu_intr_p(CMCore *core)
@@ -60,7 +56,7 @@ static inline void coremu_put_intr(CMCore *core, void *e)
 #ifdef COREMU_LOCKFREE
     enqueue(core->intr_queue, (long) e);
 #else
-    l_enqueue(core->intr_queue, (long) e);
+    enqueue(core->intr_queue, (long) e);
 #endif
 }
 
@@ -69,7 +65,7 @@ static inline void coremu_put_intr(CMCore *core, void *e)
 static void *coremu_get_intr(CMCore *core)
 {
     unsigned long intr;
-    if (!coremu_intr_p(core))
+    if (!coremu_intr_p(core))
         return NULL;
 
     /* XXX the queue implementation may have bug.
@@ -78,7 +74,7 @@ static void *coremu_get_intr(CMCore *core)
     if(!dequeue(core->intr_queue, &intr))
         return NULL;
 #else
-    if(!l_dequeue(core->intr_queue, &intr))
+    if(!dequeue(core->intr_queue, &intr))
         return NULL;
 #endif
     return (void *)intr;

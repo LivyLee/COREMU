@@ -29,6 +29,8 @@
 /*#define VERBOSE_COREMU*/
 /*#define DEBUG_CM_SCHED*/
 
+#define _GNU_SOURCE
+
 #include "utils.h"
 #include "core.h"
 #include "coremu-sched.h"
@@ -228,7 +230,6 @@ static inline void sched_halted()
 
 }
 
-
 /* handle the pause event */
 static inline void sched_pause()
 {
@@ -249,10 +250,7 @@ static inline void sched_pause()
         self->state = CM_STATE_RUN;
         pause_cnt = 0;
     }
-
-
 }
-
 
 static void display_thread_sched_attr(char *msg)
 {

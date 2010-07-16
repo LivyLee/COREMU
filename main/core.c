@@ -37,6 +37,7 @@
 #include "coremu-intr.h"
 #include "coremu-malloc.h"
 #include "core.h"
+#include "queue.h"
 
 /* pause condition */
 pthread_cond_t pause_cond = COREMU_COND_INITIALIZER;
@@ -111,24 +112,20 @@ void coremu_core_init(int id, void* opaque)
     /* step 1: get the core */
     CMCore *core = &cm_cores[id];
     core->serial = id;
-    
+
     /* step 2: init the hardware event queue and its lock */
     err = pthread_mutexattr_init(&attr);
     cm_assert((err == 0), "cannot init the attribute");
 
     err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
     cm_assert((err == 0), "cannot set mutex type");
-#ifdef COREMU_LOCKFREE
     core->intr_queue = new_queue();
-#else
-    core->intr_queue = new_lqueue();
-#endif
+    printf("Queue implementation: %s\n", queue_version());
     /* step 3: init opaque state */
     core->opaque = opaque;
 
     /* step 4: set core state to run */
     core->state = CM_STATE_RUN;
-
 }
 
 void coremu_run_all_cores(thr_start_routine thr_fn)
