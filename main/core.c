@@ -127,7 +127,7 @@ void coremu_core_init(int id, void *opaque)
     err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
     cm_assert((err == 0), "cannot set mutex type");
     core->intr_queue = new_queue();
-    printf("Queue implementation: %s\n", queue_version());
+
     /* step 3: init opaque state */
     core->opaque = opaque;
 
