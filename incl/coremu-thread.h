@@ -101,7 +101,6 @@ static inline void coremu_cond_destroy(pthread_cond_t *cond,
 static inline void coremu_sigmask_blk(sigset_t *oldset,
                                       const char *errmsg)
 {
-#if 1
     sigset_t set;
     sigfillset(&set);
     int err = pthread_sigmask(SIG_BLOCK, &set, oldset);
@@ -110,21 +109,18 @@ static inline void coremu_sigmask_blk(sigset_t *oldset,
         printf("%s\n", errmsg);
         assert(0);
     }
-#endif
 }
 
 /* restore the signals from SET */
 static inline void coremu_sigmask_res(sigset_t *set,
                                       const char *errmsg)
 {
-#if 1
     int err = pthread_sigmask(SIG_SETMASK, set, NULL);
 
     if(err) {
         printf("%s\n", errmsg);
         assert(0);
     }
-#endif
 }
 
 /* Thread scheduling */
