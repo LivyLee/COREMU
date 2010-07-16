@@ -36,6 +36,7 @@
 #include <sys/types.h>
 #include <stdbool.h>
 #include "coremu-atomic.h"
+#include "coremu-thread.h"
 #include "queue.h"
 
 #if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
@@ -140,6 +141,8 @@ queue_t *new_queue(void)
 
 void enqueue(queue_t *Q, data_type value)
 {
+    sigset_t save_sig_set;
+    coremu_sigmask_blk(&save_sig_set, NULL);
     node_t *node = new_node();                              /* Allocate a new node from the free list */
     node->value = value;                                    /* Copy the enqueued value into node */
     node->next.ptr = NULL;                                  /* Set the next pointer of node to NULL */
@@ -170,10 +173,13 @@ void enqueue(queue_t *Q, data_type value)
     new_ptr.count = tail.count + 1;
     CAS(&Q->Tail, tail, new_ptr);                            /* Enqueue is done. Try to swing Tail to the inserted node */
     atomic_incq((uint64_t *)&Q->count);
+    coremu_sigmask_res(&save_sig_set, NULL);
 }
 
 bool dequeue(queue_t *Q, data_type *pvalue)
 {
+    sigset_t save_sig_set;
+    coremu_sigmask_blk(&save_sig_set, NULL);
     pointer_t head, tail, next, new_ptr;
     for(;;) {                                                /* Keep trying until Dequeue is done */
         head = Q->Head;                                      /* Read Head */
@@ -181,8 +187,10 @@ bool dequeue(queue_t *Q, data_type *pvalue)
         next = head.ptr->next;                               /* Read head.ptr->next */
         if(cmp128(&Q->Head, &head)) {                      /* Are head, tail, next consistent */
             if(head.ptr == tail.ptr) {                       /* Is queue empty or Tail falling behind? */
-                if(next.ptr == NULL)
-                    return false;                            /* Queue is empty, couldn't dequeue */
+                if(next.ptr == NULL) {  
+                    return false;                           /* Queue is empty, couldn't dequeue */
+                    coremu_sigmask_res(&save_sig_set, NULL);
+                }
                 
                 new_ptr.ptr = next.ptr;                      /* Set new_ptr */
                 new_ptr.count = tail.count + 1;
@@ -202,6 +210,7 @@ bool dequeue(queue_t *Q, data_type *pvalue)
 
     ms_free(head.ptr);                                       /* It is safe to free the old dummy node */
     atomic_decq((uint64_t *)&Q->count);
+    coremu_sigmask_res(&save_sig_set, NULL);
     return true;                                             /* Queue was not empty, dequeue successed */
 }
 

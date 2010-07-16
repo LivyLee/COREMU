@@ -53,11 +53,7 @@ static inline int coremu_intr_p(CMCore *core)
  * Signal-unsafe. block the signal in the lock free function */
 static inline void coremu_put_intr(CMCore *core, void *e)
 {
-#ifdef COREMU_LOCKFREE
     enqueue(core->intr_queue, (long) e);
-#else
-    enqueue(core->intr_queue, (long) e);
-#endif
 }
 
 /* Get the first interrupt from queue.
@@ -70,13 +66,8 @@ static void *coremu_get_intr(CMCore *core)
 
     /* XXX the queue implementation may have bug.
      * It shouldn't be empty when there're pending interrupts. */
-#ifdef COREMU_LOCKFREE
     if(!dequeue(core->intr_queue, &intr))
         return NULL;
-#else
-    if(!dequeue(core->intr_queue, &intr))
-        return NULL;
-#endif
     return (void *)intr;
 }
 
