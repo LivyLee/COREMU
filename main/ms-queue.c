@@ -72,7 +72,6 @@ node_t *new_node(void)
 {
     /* COREMU XXX: care about qemu_malloc */
     node_t *node = ms_allocaligned(sizeof(node_t));         /* just allocate the node */
-    cm_print("new node[%p]", node);
     return node;
 }
 
