@@ -12,7 +12,10 @@
  *  <http://ppi.fudan.edu.cn/system_research_group>
  *
  * Authors:
- *  Xi Wu <wuxi@fudan.edu.cn>
+ *  Xi Wu           <wuxi@fudan.edu.cn>
+ *  Zhaoguo Wang    <zgwang@fudan.edu.cn>
+ *  Yufei Chen      <chenyufei@fudan.edu.cn>
+ *  Ran Liu         <naruilone@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
