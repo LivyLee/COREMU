@@ -60,6 +60,11 @@ to:
   b. Abstract what need to be done to build a parallel emulator by using a
      sequential one
 
+The Qemu source code we used are checked out from the official Qemu git
+repository. Since the stable branch does not support Cortex A9 very well, we
+started the development on the master branch. More specificly, we started from
+the commit: 54d7cf136f040713095cbc064f62d753bff6f9d2
+
 Other notes:
 
   1. It's better to use recent version of Linux kernel (e.g. 2.6.33) in order to

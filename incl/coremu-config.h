@@ -47,7 +47,7 @@
 #endif
 
 /* enable lazy invalidate tb */
-#define COREMU_CMC_SUPPORT
+//#define COREMU_CMC_SUPPORT
 //#define COREMU_FLUSH_TLB               /* enable broadcast flush tlb request */
 
 //#define COREMU_PROFILE                 /* enable profiling for COREMU */
