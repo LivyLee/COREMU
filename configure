@@ -50,7 +50,7 @@ if [ -z $target ]; then
 fi
 
 if [ -z $prefix ]; then
-  prefix=`pwd`/bin
+  prefix=`pwd`/bin/qemu
 fi
 
 coremuroot=`pwd`
