@@ -30,8 +30,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <pthread.h>
-
-#include "coremu-types.h"
+#include <stdbool.h>
 
 /* error-checking lock for static lock */
 #define COREMU_LOCK_INITIALIZER  PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP
