@@ -17,9 +17,9 @@ include $(addsuffix /module.mk, $(modules))
 
 objects += $(patsubst %.c, $(OBJDIR)/%.o, $(foreach dir, $(modules), $(wildcard $(dir)/*.c)))
 
-all: $(objects) $(programs) $(archive) qemu qemu-install bios-install
+all: $(objects) $(programs) $(archive) qemu
 
-install: qemu-install
+install: qemu-install bios-install
 
 coremu: $(objects) $(programs)
 	@echo $LDFLAGS
