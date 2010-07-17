@@ -55,22 +55,6 @@ typedef enum CMSchedEvent {
     CM_EVENT_CNT,
 } CMSchedEvent;
 
-/* Hardware scheduleing type */
-typedef enum sched_hw_event {
-    EVENT_NO_IOREQ,
-    EVENT_IOREQ,
-    EVENT_HW_CNT,
-} sched_hw_event_t;
-
-typedef struct cm_timer_debug_s {
-    uint64_t lapic_timer_cnt;
-    uint64_t rearm_cnt;
-    uint32_t created_timer;
-    uint32_t last_flags;
-    uint64_t last_expire_time;
-    uint64_t last_current_time;
-} cm_timer_debug_t;
-
 /* processor type */
 typedef struct CMCore {
     uint32_t serial;         /* number start from 0 */
@@ -86,24 +70,5 @@ typedef struct CMCore {
     void *opaque;            /* CPUState of QEMU */
     CMCoreState state;       /* state of the CORE */
 } CMCore;
-
-typedef struct cm_ioreq_s {
-    uint64_t addr;           /* physical address */
-    uint64_t size;           /* size in bytes  */
-    uint64_t data;           /* data (or paddr of data) */
-    uint8_t state;           /* io handling status */
-    uint8_t data_is_ptr;     /* if 1, data above is the guest
-                                paddr of the real data to use. */
-
-    uint32_t index;          /* only for mmio request */
-    uint32_t shift;          /* only for mmio request */
-
-    uint8_t dir;             /* direction, 0 = r, 1 = w */
-    uint8_t type;            /* I/O type */
-    uint64_t io_count;       /* How many IO done on a vcpu */
-
-    pthread_t core_thread;   /* core that makes this req */
-    int req_id;              /* for debug */
-} cm_ioreq_t;
 
 #endif /* _CM_TYPES_H */
