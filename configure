@@ -6,14 +6,13 @@ Usage: ./configure [options] <qemusrc>
 
 Options:
     --prefix=<path>    Install location, default is ./bin
-    --use-lockqueue    Use lock based concurrent queue instead of lock free version
+    --use-lockfree         Use lock free concurrent queue instead of lock based version.
     --target=<target>  Targets will be built, supports x86_64 and arm. x86_64 is default.
                        This option can be used for more than one time to build
                        more than one target.
 EOF
 }
 
-lockqueue="false"
 # parse options
 for opt do
   optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
@@ -22,7 +21,7 @@ for opt do
     ;;
     --qemusrc=*) qemusrc="$optarg"
     ;;
-    --use-lockqueue) lockqueue="true"
+    --use-lockfree) lockfree="true"
     ;;
     --target=*)
     if [ -z $target ]; then
@@ -50,7 +49,7 @@ if [ -z $target ]; then
 fi
 
 if [ -z $prefix ]; then
-  prefix=`pwd`/bin/qemu
+  prefix=`pwd`/bin
 fi
 
 coremuroot=`pwd`
@@ -61,7 +60,7 @@ echo '***** [QEMU-git for COREMU build] *****'
 echo "target:    $target"
 echo "prefix:    $prefix"
 echo "qemusrc:   $qemusrc"
-echo "lockqueue: $lockqueue"
+echo "lockfree: $lockfree"
 #exit 1
 
 mkdir -p obj/qemu
@@ -69,7 +68,7 @@ mkdir -p obj/qemu
 echo "QEMUSRC := ${qemusrc}" > coremu.mk
 echo "TARGET := ${target}" >> coremu.mk
 echo "PREFIXDIR := ${prefix}" >> coremu.mk
-if [ -n $lockqueue  ]; then
+if [ -n $lockfree  ]; then
   echo "LOCKFREE := true" >> coremu.mk
 fi
 
