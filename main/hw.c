@@ -3,7 +3,8 @@
  *
  * Common states for hw emulation in COREMU
  *
- * Copyright (C) 2010 PPI, Fudan Univ. <http://ppi.fudan.edu.cn/system_research_group>
+ * Copyright (C) 2010 Parallel Processing Institute (PPI), Fudan Univ.
+ *  <http://ppi.fudan.edu.cn/system_research_group>
  *
  * Authors:
  *  Zhaoguo Wang    <zgwang@fudan.edu.cn>

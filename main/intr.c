@@ -4,7 +4,8 @@
  * Interfaces for manipulating interrupts in COREMU. (e.g. interrupt from
  * device to core, and IPI between cores).
  *
- * Copyright (C) 2010 PPI, Fudan Univ. <http://ppi.fudan.edu.cn/system_research_group>
+ * Copyright (C) 2010 Parallel Processing Institute (PPI), Fudan Univ.
+ *  <http://ppi.fudan.edu.cn/system_research_group>
  *
  * Authors:
  *  Zhaoguo Wang    <zgwang@fudan.edu.cn>

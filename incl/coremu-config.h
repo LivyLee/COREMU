@@ -4,7 +4,8 @@
  * This file configures various aspects of COREMU system.
  * Read the comment carefully for each control group.
  *
- * Copyright (C) 2010 PPI, Fudan Univ. <http://ppi.fudan.edu.cn/system_research_group>
+ * Copyright (C) 2010 Parallel Processing Institute (PPI), Fudan Univ.
+ *  <http://ppi.fudan.edu.cn/system_research_group>
  *
  * Authors:
  *  Zhaoguo Wang    <zgwang@fudan.edu.cn>
@@ -45,7 +46,8 @@
 # define COREMU_THREAD
 #endif
 
-//#define COREMU_CMC_SUPPORT              /* enable lazy invalidate tb */
+/* enable lazy invalidate tb */
+#define COREMU_CMC_SUPPORT
 //#define COREMU_FLUSH_TLB               /* enable broadcast flush tlb request */
 
 //#define COREMU_PROFILE                 /* enable profiling for COREMU */

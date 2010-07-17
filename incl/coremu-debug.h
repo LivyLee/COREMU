@@ -4,7 +4,8 @@
  * This file provides basic debugging utilities for COREMU (NOT QEMU). Make sure
  * including "cm_utils" for including these debugging facilities.
  *
- * Copyright (C) 2010 PPI, Fudan Univ. <http://ppi.fudan.edu.cn/system_research_group>
+ * Copyright (C) 2010 Parallel Processing Institute (PPI), Fudan Univ.
+ *  <http://ppi.fudan.edu.cn/system_research_group>
  *
  * Authors:
  *  Zhaoguo Wang    <zgwang@fudan.edu.cn>
