@@ -38,8 +38,8 @@
 #include "coremu-spinlock.h"
 
 typedef struct node_t {
-    struct node_t *next;            /* the next node, together with the tag */
-    data_type value;           /* an integer which can hold a pointer */
+    struct node_t *next;     /* the next node, together with the tag */
+    data_type value;         /* an integer which can hold a pointer */
 } node_t;
 
 struct queue_t {
@@ -56,10 +56,11 @@ static node_t *new_node(void)
 
 static void initialize(queue_t *Q)
 {
-    node_t *node = new_node();                               /* Allocate a free node */
+    node_t *node = new_node();  /* Allocate a free node */
+
     node->next = NULL;
 
-    Q->Head = node;                                      /* Both Head and Tail point to it */
+    Q->Head = node;          /* Both Head and Tail point to it */
     Q->Tail = node;
     Q->count = 0;
     CM_SPIN_LOCK_INIT(&Q->t_lock);
@@ -68,10 +69,11 @@ static void initialize(queue_t *Q)
 queue_t *new_queue(void)
 {
     queue_t *Q = coremu_mallocz(sizeof(queue_t));
+
     initialize(Q);
 
     assert(Q->Head != NULL);
-    assert(Q->Tail!= NULL);
+    assert(Q->Tail != NULL);
     assert(Q->Head == Q->Tail);
 
     return Q;
@@ -81,6 +83,7 @@ queue_t *new_queue(void)
 void enqueue(queue_t *Q, data_type value)
 {
     node_t *node = new_node();
+
     node->value = value;
     node->next = NULL;
 
@@ -95,6 +98,7 @@ bool dequeue(queue_t *Q, data_type *value_p)
 {
     node_t *node = Q->Head;
     node_t *new_head = node->next;
+
     if (!new_head)
         return false;
 

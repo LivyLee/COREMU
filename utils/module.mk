@@ -1,5 +1,5 @@
 bindir    := $(BINDIR)/utils
-programs  += $(bindir)/kill $(bindir)/monitor
+#programs  += $(bindir)/kill $(bindir)/monitor
 
 UTILS_LINK := -lcurses
 

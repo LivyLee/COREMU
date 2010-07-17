@@ -33,19 +33,17 @@
 /* ************************* Base types ************************* */
 
 typedef void *(thr_start_routine)(void *);
-
 typedef pid_t tid_t;
-
 typedef pthread_t hw_thr_t;
 
-typedef uint64_t cm_ram_addr_t;        /* XXX: kqemu fails for this? */
+typedef uint64_t cm_ram_addr_t;
 
 /* ************************* Complex types ************************* */
 
 /* State of COREMU CORE */
 typedef enum CMCoreState {
-    CM_STATE_RUN,                           /* NOT halt */
-    CM_STATE_HALT,                          /* Halted state (e.g. execute HLT insn) */
+    CM_STATE_RUN,            /* NOT halt */
+    CM_STATE_HALT,           /* Halted state (e.g. execute HLT insn) */
     CM_STATE_PAUSE,
 } CMCoreState;
 
@@ -64,48 +62,47 @@ typedef enum sched_hw_event {
 } sched_hw_event_t;
 
 typedef struct cm_timer_debug_s {
-   uint64_t lapic_timer_cnt;
-   uint64_t rearm_cnt;
-   uint32_t created_timer;
-   uint32_t last_flags;
-   uint64_t last_expire_time;
-   uint64_t last_current_time;
+    uint64_t lapic_timer_cnt;
+    uint64_t rearm_cnt;
+    uint32_t created_timer;
+    uint32_t last_flags;
+    uint64_t last_expire_time;
+    uint64_t last_current_time;
 } cm_timer_debug_t;
 
 /* processor type */
 typedef struct CMCore {
-    uint32_t serial;                     /* number start from 0 */
-    pthread_t thread;                    /* ID of the core */
-    tid_t tid;                           /* kernel process id */
-    queue_t *intr_queue;                 /* interrupt queue for the core */
-    /* adaptive signal control */
-    uint64_t time_stamp;                 /* recode the time of intr pending */
-    int64_t intr_thresh_hold;           /* the thresh hold for intr sending */
-    uint8_t sig_pending;                 /* if has signal not receive */
+    uint32_t serial;         /* number start from 0 */
+    pthread_t thread;        /* ID of the core */
+    tid_t tid;               /* kernel process id */
+    queue_t *intr_queue;     /* interrupt queue for the core */
 
-    void *opaque;                        /* CPUState of QEMU */
-    CMCoreState state;                   /* state of the CORE */
-//    cm_timer_debug_t debug_info;       /* Used for timer debug */
+    /* adaptive signal control */
+    uint64_t time_stamp;      /* recode the time of intr pending */
+    int64_t intr_thresh_hold; /* the thresh hold for intr sending */
+    uint8_t sig_pending;      /* if has signal not receive */
+
+    void *opaque;            /* CPUState of QEMU */
+    CMCoreState state;       /* state of the CORE */
 } CMCore;
 
 typedef struct cm_ioreq_s {
-    uint64_t addr;                       /* physical address */
-    uint64_t size;                       /* size in bytes  */
-    uint64_t data;                       /* data (or paddr of data) */
-    uint8_t state;                       /* io handling status */
-    uint8_t data_is_ptr;                 /* if 1, data above is the guest
-                                             paddr of the real data to use. */
+    uint64_t addr;           /* physical address */
+    uint64_t size;           /* size in bytes  */
+    uint64_t data;           /* data (or paddr of data) */
+    uint8_t state;           /* io handling status */
+    uint8_t data_is_ptr;     /* if 1, data above is the guest
+                                paddr of the real data to use. */
 
-    uint32_t index;                      /* only for mmio request */
-    uint32_t shift;                      /* only for mmio request */
+    uint32_t index;          /* only for mmio request */
+    uint32_t shift;          /* only for mmio request */
 
-    uint8_t dir;                         /* direction, 0 = r, 1 = w */
-    uint8_t type;                        /* I/O type */
-    uint64_t io_count;                   /* How many IO done on a vcpu */
+    uint8_t dir;             /* direction, 0 = r, 1 = w */
+    uint8_t type;            /* I/O type */
+    uint64_t io_count;       /* How many IO done on a vcpu */
 
-    pthread_t  core_thread;              /* core that makes this req */
-    int req_id;                          /* for debug */
+    pthread_t core_thread;   /* core that makes this req */
+    int req_id;              /* for debug */
 } cm_ioreq_t;
 
 #endif /* _CM_TYPES_H */
-

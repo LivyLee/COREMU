@@ -36,7 +36,7 @@
 #include "coremu-sched.h"
 #include "core.h"
 
-#define MAX_INTR_THRESHOLD       50 
+#define MAX_INTR_THRESHOLD       50
 #define SIG_HANDLE_INTERVAL      (2500000 * (coremu_get_thrs_per_core() / 8))
 
 static inline int64_t coremu_intr_get_size(CMCore *core)
@@ -53,7 +53,7 @@ static inline int coremu_intr_p(CMCore *core)
  * Signal-unsafe. block the signal in the lock free function */
 static inline void coremu_put_intr(CMCore *core, void *e)
 {
-    enqueue(core->intr_queue, (long) e);
+    enqueue(core->intr_queue, (long)e);
 }
 
 /* Get the first interrupt from queue.
@@ -66,7 +66,7 @@ static void *coremu_get_intr(CMCore *core)
 
     /* XXX the queue implementation may have bug.
      * It shouldn't be empty when there're pending interrupts. */
-    if(!dequeue(core->intr_queue, &intr))
+    if (!dequeue(core->intr_queue, &intr))
         return NULL;
     return (void *)intr;
 }
@@ -76,32 +76,32 @@ static void coremu_send_signal(CMCore *core)
     int64_t pending_intr = coremu_intr_get_size(core);
     uint64_t send_sig_p = 0;
 
-    if(pending_intr > core->intr_thresh_hold) {
+    if (pending_intr > core->intr_thresh_hold) {
         if (!core->sig_pending) {
-                core->sig_pending = 1;
-                core->state = CM_STATE_RUN;
-                send_sig_p = 1;
+            core->sig_pending = 1;
+            core->state = CM_STATE_RUN;
+            send_sig_p = 1;
         } else {
-            if(core->intr_thresh_hold < MAX_INTR_THRESHOLD)
-                core->intr_thresh_hold = (core->intr_thresh_hold + 1)<< 1;
+            if (core->intr_thresh_hold < MAX_INTR_THRESHOLD)
+                core->intr_thresh_hold = (core->intr_thresh_hold + 1) << 1;
         }
     }
-    
-   if( coremu_physical_core_enough_p() || send_sig_p || 
-            core->state == CM_STATE_HALT || core->state == CM_STATE_PAUSE) {
+
+    if (coremu_physical_core_enough_p() || send_sig_p ||
+        core->state == CM_STATE_HALT || core->state == CM_STATE_PAUSE) {
         coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
         pthread_kill(core->thread, COREMU_SIGNAL);
-   }
+    }
 }
 
 static void adjust_intr_threshold(void)
 {
-    CMCore* self = coremu_get_core_self();
+    CMCore *self = coremu_get_core_self();
     uint64_t tsc = read_host_tsc();
-    if(self->time_stamp) {
-        if((tsc - self->time_stamp) > SIG_HANDLE_INTERVAL) 
+    if (self->time_stamp) {
+        if ((tsc - self->time_stamp) > SIG_HANDLE_INTERVAL)
             self->intr_thresh_hold = 0;
-        else if(self->intr_thresh_hold > 0)
+        else if (self->intr_thresh_hold > 0)
             self->intr_thresh_hold--;
     }
     self->time_stamp = tsc;
@@ -123,10 +123,10 @@ void coremu_receive_intr()
 {
     CMCore *core = coremu_get_core_self();
     void *intr = NULL;
-    
+
     if (event_handler) {
-        while ((intr = coremu_get_intr(core))!=NULL) {
-        /* call registed interrupt handler */
+        while ((intr = coremu_get_intr(core)) != NULL) {
+            /* call registed interrupt handler */
             event_handler(intr);
         }
     }
@@ -157,7 +157,7 @@ void coremu_send_intr(void *e, int coreid)
 
 void coremu_core_signal_handler(int signo, siginfo_t *info, void *context)
 {
-    CMCore* self = coremu_get_core_self();
+    CMCore *self = coremu_get_core_self();
     adjust_intr_threshold();
     coremu_thread_setpriority(PRIO_PROCESS, 0, avg_prio);
 
@@ -167,4 +167,3 @@ void coremu_core_signal_handler(int signo, siginfo_t *info, void *context)
 
     self->sig_pending = 0;
 }
-

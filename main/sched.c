@@ -46,12 +46,12 @@ static unsigned int cores;
 
 __thread unsigned long int halt_cnt = 0;
 #define HALT_THRESHHOLD     10
-#define HALT_SLEEP_MIN_TIME 10000    // 1000ns = 10us
+#define HALT_SLEEP_MIN_TIME 10000   // 1000ns = 10us
 #define HALT_SLEEP_MAX_TIME 5000000 // 5000,000ns = 5ms this is the smallest quantum
 
 __thread unsigned long int pause_cnt = 0;
 #define PAUSE_THRESHOLD     100
-#define PAUSE_SLEEP_TIME    100000 // 100,000 ns = 100us
+#define PAUSE_SLEEP_TIME    100000  // 100,000 ns = 100us
 
 static inline void sched_halted(void);
 static inline void sched_pause(void);
@@ -65,7 +65,7 @@ static void print_children(topo_topology_t topology, topo_obj_t obj, int depth)
     int i;
 
     topo_obj_snprintf(string, sizeof(string), topology, obj, "#", 0);
-    printf("%*s%s\n", 2*depth, "", string);
+    printf("%*s%s\n", 2 * depth, "", string);
     for (i = 0; i < obj->arity; i++)
         print_children(topology, obj->children[i], depth + 1);
 }
@@ -79,31 +79,34 @@ static void topology_init()
     depth = topo_get_type_or_below_depth(topology, TOPO_OBJ_CORE);
     cores = topo_get_depth_nbobjs(topology, depth);
 
-    fprintf(stderr, "----------------- Dump toplogy[%ud] info -----------------\n", cores);
+    fprintf(stderr,
+            "----------------- Dump toplogy[%ud] info -----------------\n",
+            cores);
     /* Dump the toplogy info */
     print_children(topology, topo_get_system_obj(topology), 0);
-    fprintf(stderr, "----------------------------------------------------------\n");
+    fprintf(stderr,
+            "----------------------------------------------------------\n");
 }
 
 
 static void topology_bind_core()
 {
     topo_obj_t obj;
-    topo_cpuset_t cpuset;   
+    topo_cpuset_t cpuset;
     CMCore *self = coremu_get_core_self();
     int index;
 
     index = (self->serial % cores);
- 
+
     obj = topo_get_obj_by_depth(topology, depth, index);
     cpuset = obj->cpuset;
     topo_cpuset_singlify(&cpuset);
 
     if (topo_set_cpubind(topology, &cpuset, TOPO_CPUBIND_THREAD)) {
-     char s[TOPO_CPUSET_STRING_LENGTH + 1];
-     topo_cpuset_snprintf(s, sizeof(s), &obj->cpuset);
-     printf("Couldn't bind to cpuset %s\n", s);
-     exit(-1);
+        char s[TOPO_CPUSET_STRING_LENGTH + 1];
+        topo_cpuset_snprintf(s, sizeof(s), &obj->cpuset);
+        printf("Couldn't bind to cpuset %s\n", s);
+        exit(-1);
     }
 
     fprintf(stderr, "core [%u] binds to %d\n", self->serial, index);
@@ -117,15 +120,15 @@ void coremu_init_sched_all()
 
     /* HIGH numeric value indicates LOW priority,
        and vice versa */
-    max_prio = -21; min_prio = 19;
+    max_prio = -21;
+    min_prio = 19;
     avg_prio = (max_prio + min_prio) / 2;
     low_prio = (avg_prio + min_prio) / 2;
     high_prio = (max_prio + avg_prio) / 2;
 
     cm_print("[priority]: max[%d], min[%d], "
              "low[%d], avg[%d], high[%d]",
-             max_prio, min_prio,
-             low_prio, avg_prio, high_prio);
+             max_prio, min_prio, low_prio, avg_prio, high_prio);
 
     /* set priority for main thread
        NOTE: now it is HW thread. */
@@ -151,14 +154,14 @@ int coremu_get_targetcpu()
 
 int coremu_get_thrs_per_core()
 {
-    return (host_cpu_avail + cm_smp_cpus - 1)/host_cpu_avail;
+    return (host_cpu_avail + cm_smp_cpus - 1) / host_cpu_avail;
 }
 
 int coremu_physical_core_enough_p()
 {
     return host_cpu_avail >= cm_smp_cpus;
 }
-    
+
 int coremu_get_maxprio()
 {
     return high_prio;
@@ -173,16 +176,15 @@ int coremu_get_minprio()
 void coremu_init_sched_core()
 {
     int policy;
-    CMCore* self;
+    CMCore *self;
     struct sched_param param;
-    assert(! pthread_getschedparam(pthread_self(),
-                                   &policy, &param));
+    assert(!pthread_getschedparam(pthread_self(), &policy, &param));
     assert(policy == CM_SCHED_POLICY);
 
     coremu_thread_setpriority(PRIO_PROCESS, 0, avg_prio);
     self = coremu_get_core_self();
     self->tid = coremu_gettid();
-    
+
     /* display the scheduling info */
     display_thread_sched_attr("CORE thread scheduler settings:");
 
@@ -197,21 +199,15 @@ void coremu_init_sched_core()
 
 void coremu_cpu_sched(CMSchedEvent e)
 {
-    switch(e) {
-        case CM_EVENT_HALTED:
-        {
-            sched_halted();
-            break;
-        }
-        case CM_EVENT_PAUSE:
-        {
-            sched_pause();
-            break;
-        }
-        default:
-        {
-            assert(0);
-        }
+    switch (e) {
+    case CM_EVENT_HALTED:
+        sched_halted();
+        break;
+    case CM_EVENT_PAUSE:
+        sched_pause();
+        break;
+    default:
+        assert(0);
     }
 }
 
@@ -220,8 +216,8 @@ void coremu_cpu_sched(CMSchedEvent e)
 static inline void sched_halted()
 {
     struct timespec halt_interval;
-    CMCore * self = coremu_get_core_self();
-    
+    CMCore *self = coremu_get_core_self();
+
     self->state = CM_STATE_HALT;
     halt_interval.tv_sec = 0;
     halt_interval.tv_nsec = HALT_SLEEP_MAX_TIME;
@@ -234,7 +230,7 @@ static inline void sched_halted()
 static inline void sched_pause()
 {
     struct timespec pause_interval;
-    CMCore * self = coremu_get_core_self();
+    CMCore *self = coremu_get_core_self();
 
     pause_interval.tv_sec = 0;
     pause_interval.tv_nsec = PAUSE_SLEEP_TIME;
@@ -258,20 +254,20 @@ static void display_thread_sched_attr(char *msg)
     struct sched_param param;
 
     prio = getpriority(PRIO_PROCESS, 0);
-    assert(! pthread_getschedparam(pthread_self(),
-                                   &policy, &param));
+    assert(!pthread_getschedparam(pthread_self(), &policy, &param));
 
     cm_print("-- tid[%lu] %s start --",
-             (unsigned long int) coremu_gettid(), msg);
+             (unsigned long int)coremu_gettid(), msg);
 
     cm_print("policy=%s, priority=%d",
-           (policy == SCHED_FIFO)  ? "SCHED_FIFO" :
-           (policy == SCHED_RR)    ? "SCHED_RR" :
-           (policy == SCHED_OTHER) ? "SCHED_OTHER" :
-           "???",
-           prio);
+             (policy == SCHED_FIFO) ?
+				 "SCHED_FIFO" :
+                 (policy == SCHED_RR) ?
+				     "SCHED_RR" :
+					 (policy == SCHED_OTHER) ?
+						 "SCHED_OTHER" :
+						 "???", prio);
 
     cm_print("-- thr[%lu] %s end --\n",
-             (unsigned long int) coremu_gettid(), msg);
+             (unsigned long int)coremu_gettid(), msg);
 }
-

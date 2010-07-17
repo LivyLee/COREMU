@@ -29,7 +29,6 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdio.h>
-#include <stdint.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -47,24 +46,24 @@
 
 struct node_t;
 typedef struct pointer_s {
-    struct node_t *ptr;               /* lower order: (node_t *) */
-    uint64_t count;            /* higher order: unsigned integer */
+    struct node_t *ptr;      /* lower order: (node_t *) */
+    uint64_t count;          /* higher order: unsigned integer */
 } pointer_t;
 
 typedef struct node_t {
-    pointer_t next;            /* the next node, together with the tag */
-    data_type value;           /* an integer which can hold a pointer */
+    pointer_t next;          /* the next node, together with the tag */
+    data_type value;         /* an integer which can hold a pointer */
 } node_t;
 
 struct queue_t {
-    pointer_t Head;            /* head of the queue */
-    pointer_t Tail;            /* tail of the queue */
-    int64_t count;            /* count the number of elements */
+    pointer_t Head;          /* head of the queue */
+    pointer_t Tail;          /* tail of the queue */
+    int64_t count;           /* count the number of elements */
 };
 
 /* macros */
-#define nil        0           /* predefined tag */
-#define ALIGNMENT  16          /* all data must be aligned to 16 bytes */
+#define nil        0         /* predefined tag */
+#define ALIGNMENT  16        /* all data must be aligned to 16 bytes */
 
 static inline uint8_t cmp128(pointer_t *p1, pointer_t *p2);
 static inline uint64_t CAS(pointer_t *ptr, pointer_t old, pointer_t new);
@@ -109,8 +108,7 @@ static inline uint64_t CAS(pointer_t *ptr, pointer_t old, pointer_t new)
 
     assert(((uint64_t)ptr & 0xf) == 0);
 
-    return atomic_compare_exchange16b((uint64_t *) ptr,
-                                      rax, rdx, rbx, rcx);
+    return atomic_compare_exchange16b((uint64_t *)ptr, rax, rdx, rbx, rcx);
 }
 
 /* Allocate memory aligned to 16 bytes, (see ALIGNMENT
@@ -122,7 +120,7 @@ static void initialize(queue_t *Q);
 static node_t *new_node(void)
 {
     /* COREMU XXX: care about qemu_malloc */
-    node_t *node = ms_allocaligned(sizeof(node_t));         /* just allocate the node */
+    node_t *node = ms_allocaligned(sizeof(node_t)); /* just allocate the node */
     return node;
 }
 
@@ -130,7 +128,7 @@ queue_t *new_queue(void)
 {
     /* COREMU XXX: care about qemu_malloc ??? */
     queue_t *Q = ms_allocaligned(sizeof(queue_t));
-    initialize(Q);                                           /* Initialize the queue */
+    initialize(Q);           /* Initialize the queue */
 
     assert(Q->Head.ptr != NULL);
     assert(Q->Tail.ptr != NULL);
@@ -143,36 +141,36 @@ void enqueue(queue_t *Q, data_type value)
 {
     sigset_t save_sig_set;
     coremu_sigmask_blk(&save_sig_set, NULL);
-    node_t *node = new_node();                              /* Allocate a new node from the free list */
-    node->value = value;                                    /* Copy the enqueued value into node */
-    node->next.ptr = NULL;                                  /* Set the next pointer of node to NULL */
+    node_t *node = new_node();  /* Allocate a new node from the free list */
+    node->value = value;        /* Copy the enqueued value into node */
+    node->next.ptr = NULL;      /* Set the next pointer of node to NULL */
 
     pointer_t tail, next, new_ptr;
-    for(;;) {                                               /* Keep trying until Enqueue is done */
+    for (;;) {                  /* Keep trying until Enqueue is done */
         tail = Q->Tail;
         next = tail.ptr->next;
 
-        if(cmp128(&Q->Tail, &tail)) {
+        if (cmp128(&Q->Tail, &tail)) {
             /* Are tail and next consistent? */
-            if(next.ptr == NULL) {                          /* Was Tail pointing to the last node */
-                new_ptr.ptr = node;                         /* Set the new pointer_t */
+            if (next.ptr == NULL) {     /* Was Tail pointing to the last node */
+                new_ptr.ptr = node;     /* Set the new pointer_t */
                 new_ptr.count = next.count + 1;
 
-                if(CAS(&(tail.ptr->next), next, new_ptr)) {   /* Try to link the node at the end of the linked list */
+                if (CAS(&(tail.ptr->next), next, new_ptr)) {    /* Try to link the node at the end of the linked list */
                     break;
                 }
-            } else {                                        /* Tail was not pointing to the last node */
-                new_ptr.ptr = next.ptr;                     /* Set the new pointer_t */
+            } else {                    /* Tail was not pointing to the last node */
+                new_ptr.ptr = next.ptr; /* Set the new pointer_t */
                 new_ptr.count = tail.count + 1;
                 CAS(&Q->Tail, tail, new_ptr);
-            } /* endif */
-        } /* endif */
-    } /* endloop */
+            }
+        }
+    }
 
     new_ptr.ptr = node;
     new_ptr.count = tail.count + 1;
-    CAS(&Q->Tail, tail, new_ptr);                            /* Enqueue is done. Try to swing Tail to the inserted node */
-    atomic_incq((uint64_t *)&Q->count);
+    CAS(&Q->Tail, tail, new_ptr);       /* Enqueue is done. Try to swing Tail to the inserted node */
+    atomic_incq((uint64_t *) & Q->count);
     coremu_sigmask_res(&save_sig_set, NULL);
 }
 
@@ -181,37 +179,37 @@ bool dequeue(queue_t *Q, data_type *pvalue)
     sigset_t save_sig_set;
     coremu_sigmask_blk(&save_sig_set, NULL);
     pointer_t head, tail, next, new_ptr;
-    for(;;) {                                                /* Keep trying until Dequeue is done */
-        head = Q->Head;                                      /* Read Head */
-        tail = Q->Tail;                                      /* Read Tail */
-        next = head.ptr->next;                               /* Read head.ptr->next */
-        if(cmp128(&Q->Head, &head)) {                      /* Are head, tail, next consistent */
-            if(head.ptr == tail.ptr) {                       /* Is queue empty or Tail falling behind? */
-                if(next.ptr == NULL) {  
-                    return false;                           /* Queue is empty, couldn't dequeue */
+    for (;;) {               /* Keep trying until Dequeue is done */
+        head = Q->Head;      /* Read Head */
+        tail = Q->Tail;      /* Read Tail */
+        next = head.ptr->next;          /* Read head.ptr->next */
+        if (cmp128(&Q->Head, &head)) {  /* Are head, tail, next consistent */
+            if (head.ptr == tail.ptr) { /* Is queue empty or Tail falling behind? */
+                if (next.ptr == NULL) {
+                    return false;       /* Queue is empty, couldn't dequeue */
                     coremu_sigmask_res(&save_sig_set, NULL);
                 }
-                
-                new_ptr.ptr = next.ptr;                      /* Set new_ptr */
+
+                new_ptr.ptr = next.ptr; /* Set new_ptr */
                 new_ptr.count = tail.count + 1;
-                CAS(&Q->Tail, tail, new_ptr);                /* Tail is falling behind. Try to advance it */
-            } else {                                         /* No need to deal with Tail */
-                /* Read value before CAS, otherwise another
-                   dequeue might free the next node */
+                CAS(&Q->Tail, tail, new_ptr);   /* Tail is falling behind. Try to advance it */
+            } else {                    /* No need to deal with Tail */
+                /* Read value before CAS, otherwise another dequeue might free
+				 * the next node */
                 *pvalue = next.ptr->value;
                 new_ptr.ptr = next.ptr;
                 new_ptr.count = head.count + 1;
-                if(CAS(&Q->Head, head, new_ptr)) {           /* Try to swing Head to the next node */
+                if (CAS(&Q->Head, head, new_ptr)) { /* Try to swing Head to the next node */
                     break;
-                } /* endif */
-            } /* endif */
-        } /* endif */
-    } /* endloop */
+                }
+            }
+        }
+    }
 
-    ms_free(head.ptr);                                       /* It is safe to free the old dummy node */
-    atomic_decq((uint64_t *)&Q->count);
+    ms_free(head.ptr);       /* It is safe to free the old dummy node */
+    atomic_decq((uint64_t *) &Q->count);
     coremu_sigmask_res(&save_sig_set, NULL);
-    return true;                                             /* Queue was not empty, dequeue successed */
+    return true;             /* Queue was not empty, dequeue successed */
 }
 
 /* Iterate this queue, and print all values of the nodes */
@@ -219,10 +217,9 @@ void print_queue(queue_t *Q);
 void print_queue(queue_t *Q)
 {
     /* elements of the queue */
-    fprintf(stderr, ">>> print queue[%lu] <<<\n",
-            Q->count);
+    fprintf(stderr, ">>> print queue[%lu] <<<\n", Q->count);
     node_t *cur = Q->Head.ptr;
-    while(cur != NULL) {
+    while (cur != NULL) {
         fprintf(stderr, "cur.value = %lu\n", cur->value);
         cur = cur->next.ptr;
     }
@@ -255,16 +252,16 @@ static void ms_free(void *ptr)
 
 static void initialize(queue_t *Q)
 {
-    node_t *node = new_node();                               /* Allocate a free node */
-    node->next.ptr = NULL;                                   /* Make it the only node in the linked list */
+    node_t *node = new_node();  /* Allocate a free node */
+    node->next.ptr = NULL;   /* Make it the only node in the linked list */
 
-    Q->Head.ptr = node;                                      /* Both Head and Tail point to it */
+    Q->Head.ptr = node;      /* Both Head and Tail point to it */
     Q->Head.count = nil;
 
     Q->Tail.ptr = node;
     Q->Tail.count = nil;
 
-    Q->count = 0;                                            /* no elements initially */
+    Q->count = 0;            /* no elements initially */
 }
 
 char *queue_version()

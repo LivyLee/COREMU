@@ -28,9 +28,8 @@
 #include <sys/types.h>
 void *coremu_malloc(size_t size);
 void *coremu_mallocz(size_t size);
-void *coremu_realloc(void * ptr, size_t size);
+void *coremu_realloc(void *ptr, size_t size);
 void coremu_free(void *ptr);
 int coremu_atomic_mallocz(void **pp, size_t size);
 
 #endif /* _COREMU_MALLOC_H */
-

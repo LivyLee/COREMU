@@ -37,16 +37,17 @@ SPINLOCK_ATTR int __testandset(CMSpinLock *p)
 {
     int readval = 0;
 
-    __asm__ __volatile__ ("lock; cmpxchgl %2, %0"
-                          : "+m" (p->lock), "+a" (readval)
-                          : "r" (1)
-                          : "cc");
+    __asm__ __volatile__ (
+			"lock; cmpxchgl %2, %0"
+			: "+m" (p->lock), "+a" (readval)
+			: "r" (1)
+			: "cc");
     return readval;
 }
 
 SPINLOCK_ATTR void coremu_spin_lock(CMSpinLock *lock)
 {
-    while(__testandset(lock));
+    while (__testandset(lock));
 }
 
 SPINLOCK_ATTR void coremu_spin_unlock(CMSpinLock *s)

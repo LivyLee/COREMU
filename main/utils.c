@@ -46,7 +46,7 @@ void maketimeout(struct timespec *tsp, long seconds)
 
     /* add the offset to get timeout value */
     tsp->tv_sec = seconds;
-    tsp->tv_nsec = 0;           /* must clear the nsec */
+    tsp->tv_nsec = 0;        /* must clear the nsec */
 }
 
 /* Subtract the `struct timeval' values X and Y,
@@ -82,7 +82,7 @@ unsigned long read_host_tsc(void)
 {
     unsigned a, d;
     __asm __volatile("rdtsc":"=a"(a), "=d"(d));
-    return ((unsigned long)a) | (((unsigned long) d) << 32);
+    return ((unsigned long)a) | (((unsigned long)d) << 32);
 }
 
 /* random a number [min, max) */
@@ -117,14 +117,12 @@ void coremu_backtrace()
 #define SIZE 100
     void *buffer[SIZE];
     int j, nptrs;
-    nptrs = backtrace(buffer, SIZE); /* get the address on the frame */
+    nptrs = backtrace(buffer, SIZE);    /* get the address on the frame */
     char **strings = backtrace_symbols(buffer, nptrs);
-    if(strings != NULL) {
+    if (strings != NULL) {
         cm_print("Dump the call stack");
-        for(j = 0; j < nptrs; j++)
+        for (j = 0; j < nptrs; j++)
             printf("%s\n", strings[j]);
     }
     free(strings);
 }
-
-

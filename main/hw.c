@@ -32,7 +32,7 @@
 #include "coremu-hw.h"
 #include "coremu-atomic.h"
 
-static volatile int ioreq_exit = 0;    /* flag to exit the ioreq wait */
+static volatile int ioreq_exit = 0; /* flag to exit the ioreq wait */
 static hw_thr_t hw_thrid;
 static void register_hw_thr(void);
 
@@ -62,8 +62,8 @@ void coremu_assert_hw_thr(const char *msg)
 {
     hw_thr_t cur = (hw_thr_t) pthread_self();
 
-    if(hw_thrid != cur) {
-        if(msg != NULL)
+    if (hw_thrid != cur) {
+        if (msg != NULL)
             printf("[fatal] %s\n", msg);
         assert(0);
     }
@@ -73,8 +73,8 @@ void coremu_assert_not_hw_thr(const char *msg)
 {
     hw_thr_t cur = (hw_thr_t) pthread_self();
 
-    if(hw_thrid == cur) {
-        if(msg != NULL)
+    if (hw_thrid == cur) {
+        if (msg != NULL)
             printf("[fatal] %s\n", msg);
         assert(0);
     }

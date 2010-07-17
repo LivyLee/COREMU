@@ -49,7 +49,7 @@ void *coremu_mallocz(size_t size)
     return p;
 }
 
-void *coremu_realloc(void * ptr, size_t size)
+void *coremu_realloc(void *ptr, size_t size)
 {
     return oom_check(realloc(ptr, size ? size : 1));
 }
@@ -69,4 +69,3 @@ int coremu_atomic_mallocz(void **pp, size_t size)
 
     return res == 0;
 }
-

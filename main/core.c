@@ -28,7 +28,7 @@
 /*#define DEBUG_COREMU*/
 #define VERBOSE_COREMU
 
-#define _GNU_SOURCE             /* for some GNU specific interfaces */
+#define _GNU_SOURCE          /* for some GNU specific interfaces */
 
 #include "utils.h"
 #include "coremu-hw.h"
@@ -41,6 +41,7 @@
 
 /* pause condition */
 pthread_cond_t pause_cond = COREMU_COND_INITIALIZER;
+
 pthread_mutex_t pause_mutex = COREMU_LOCK_INITIALIZER;
 
 /* coremu cores init related */
@@ -48,6 +49,7 @@ static volatile int init_done = false;
 
 /* coremu core itself for each thread */
 __thread pthread_mutexattr_t attr;
+
 static pthread_attr_t thr_attr;
 
 /* coremu retry profiling */
@@ -55,13 +57,15 @@ __thread unsigned long int cm_retry_num = 0;
 
 /* Number of cores. */
 int cm_smp_cpus;
+
 /* Array holding all the core object. */
 CMCore *cm_cores;
+
 /* Pointer to the core object of the thread. */
 __thread CMCore *cm_core_self;
 
-extern void coremu_core_signal_handler(int signo, siginfo_t *info,
-        void *context);
+extern void coremu_core_signal_handler(int signo, siginfo_t * info,
+                                       void *context);
 void coremu_init(int smp_cpus)
 {
     cm_print("\nTIMERRTSIG:\t\t%d"
@@ -77,7 +81,7 @@ void coremu_init(int smp_cpus)
     coremu_init_sched_all();
 
     /* step 1: init the global core array */
-    cm_cores = (CMCore *) coremu_mallocz(cm_smp_cpus * sizeof(*cm_cores));
+    cm_cores = (CMCore *)coremu_mallocz(cm_smp_cpus * sizeof(*cm_cores));
 
     /* step 2: init the coremu timer thread */
 
@@ -86,6 +90,7 @@ void coremu_init(int smp_cpus)
 
     /* block TIMERRTSIG */
     sigset_t set;
+
     sigemptyset(&set);
     sigaddset(&set, TIMERRTSIG);
     pthread_sigmask(SIG_BLOCK, &set, NULL);
@@ -97,6 +102,7 @@ void coremu_init(int smp_cpus)
 
     /* step 3: register CORMEU signal handling */
     struct sigaction act;
+
     sigfillset(&act.sa_mask);
     act.sa_flags = 0;
     act.sa_flags |= SA_SIGINFO;
@@ -105,12 +111,13 @@ void coremu_init(int smp_cpus)
     sigaction(COREMU_SIGNAL, &act, NULL);
 }
 
-void coremu_core_init(int id, void* opaque)
+void coremu_core_init(int id, void *opaque)
 {
     int err = 0;
 
     /* step 1: get the core */
     CMCore *core = &cm_cores[id];
+
     core->serial = id;
 
     /* step 2: init the hardware event queue and its lock */
@@ -131,16 +138,16 @@ void coremu_core_init(int id, void* opaque)
 void coremu_run_all_cores(thr_start_routine thr_fn)
 {
     CMCore *cur;
+
     int err;
 
     pthread_attr_init(&thr_attr);
     pthread_attr_setdetachstate(&thr_attr, PTHREAD_CREATE_JOINABLE);
     pthread_attr_setschedpolicy(&thr_attr, SCHED_RR);
 
-    for (cur = cm_cores; cur != cm_cores + cm_smp_cpus; cur++){
-        err = pthread_create(&cur->thread, &thr_attr, thr_fn,
-                cur->opaque);
-        cm_assert((! err), "pthread creation fails...");
+    for (cur = cm_cores; cur != cm_cores + cm_smp_cpus; cur++) {
+        err = pthread_create(&cur->thread, &thr_attr, thr_fn, cur->opaque);
+        cm_assert((!err), "pthread creation fails...");
     }
 
     pthread_attr_destroy(&thr_attr);
@@ -164,8 +171,9 @@ void coremu_assert_core_thr()
 void coremu_wait_init(void)
 {
     struct timespec tsp;
+
     tsp.tv_sec = 0;
-    tsp.tv_nsec = 1000000; /* 1 milli-second per check */
+    tsp.tv_nsec = 1000000;   /* 1 milli-second per check */
     while (!init_done) {
         nanosleep(&tsp, NULL);
     }
@@ -184,29 +192,31 @@ void coremu_core_exit(void *value_ptr)
 void coremu_pause_core()
 {
     CMCore *self = coremu_get_core_self();
-    coremu_mutex_lock(&pause_mutex,"coremu_pause_core");
-    if(self->state==CM_STATE_RUN){
-        self->state=CM_STATE_PAUSE;
+
+    coremu_mutex_lock(&pause_mutex, "coremu_pause_core");
+    if (self->state == CM_STATE_RUN) {
+        self->state = CM_STATE_PAUSE;
         coremu_cond_wait(&pause_cond, &pause_mutex);
-        self->state=CM_STATE_RUN;
+        self->state = CM_STATE_RUN;
     }
-    coremu_mutex_unlock(&pause_mutex,"coremu_pause_core");
+    coremu_mutex_unlock(&pause_mutex, "coremu_pause_core");
 }
 
 void coremu_wait_pause(CMCore *core)
 {
-    coremu_mutex_lock(&pause_mutex,"coremu_wait_pause");
-    while(core->state!=CM_STATE_PAUSE){
-        coremu_mutex_unlock(&pause_mutex,"coremu_wait_pause");
-        coremu_mutex_lock(&pause_mutex,"coremu_wait_pause");
+    coremu_mutex_lock(&pause_mutex, "coremu_wait_pause");
+    while (core->state != CM_STATE_PAUSE) {
+        coremu_mutex_unlock(&pause_mutex, "coremu_wait_pause");
+        coremu_mutex_lock(&pause_mutex, "coremu_wait_pause");
     }
-    coremu_mutex_unlock(&pause_mutex,"coremu_wait_pause");
+    coremu_mutex_unlock(&pause_mutex, "coremu_wait_pause");
 }
 
 void coremu_wait_all_cores_pause(void)
-{	
+{
     int i;
-    for(i=0;i<cm_smp_cpus;i++){
+
+    for (i = 0; i < cm_smp_cpus; i++) {
         coremu_wait_pause(&cm_cores[i]);
     }
 }
