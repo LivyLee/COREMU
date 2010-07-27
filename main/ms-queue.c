@@ -30,6 +30,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -38,6 +39,7 @@
 #include <stdbool.h>
 #include "coremu-atomic.h"
 #include "coremu-thread.h"
+#define COREMU_LOCKFREE
 #include "queue.h"
 
 #if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
@@ -45,23 +47,6 @@
 #else
 # include <malloc.h>
 #endif
-
-struct node_t;
-typedef struct pointer_s {
-    struct node_t *ptr;      /* lower order: (node_t *) */
-    uint64_t count;          /* higher order: unsigned integer */
-} pointer_t;
-
-typedef struct node_t {
-    pointer_t next;          /* the next node, together with the tag */
-    data_type value;         /* an integer which can hold a pointer */
-} node_t;
-
-struct queue_t {
-    pointer_t Head;          /* head of the queue */
-    pointer_t Tail;          /* tail of the queue */
-    int64_t count;           /* count the number of elements */
-};
 
 /* macros */
 #define nil        0         /* predefined tag */

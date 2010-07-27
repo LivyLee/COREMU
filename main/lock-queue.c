@@ -33,22 +33,10 @@
 #include <signal.h>
 #include <assert.h>
 
+#undef COREMU_LOCKFREE
 #include "queue.h"
 #include "coremu-atomic.h"
 #include "coremu-malloc.h"
-#include "coremu-spinlock.h"
-
-typedef struct node_t {
-    struct node_t *next;     /* the next node, together with the tag */
-    data_type value;         /* an integer which can hold a pointer */
-} node_t;
-
-struct queue_t {
-    node_t *Head;            /* head of the queue */
-    node_t *Tail;            /* tail of the queue */
-    uint64_t count;
-    CMSpinLock t_lock;
-};
 
 static node_t *new_node(void)
 {

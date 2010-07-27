@@ -83,6 +83,9 @@ echo "TARGET := ${target}" >> coremu.mk
 echo "PREFIXDIR := ${prefix}" >> coremu.mk
 if [ $lockfree = "true" ]; then
   echo "LOCKFREE := true" >> coremu.mk
+  sed -i -e 's,^//\(#define COREMU_LOCKFREE\),\1,g' $coremuroot/incl/coremu-config.h
+else
+  sed -i -e 's,^\(#define COREMU_LOCKFREE\),//\1,g' $coremuroot/incl/coremu-config.h
 fi
 
 # enable or disable corss modifying code in incl/coremu/config.h

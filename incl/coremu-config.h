@@ -46,6 +46,9 @@
 # define COREMU_THREAD
 #endif
 
+/* Enable lock free queue */
+//#define COREMU_LOCKFREE
+
 /* enable lazy invalidate tb */
 //#define COREMU_CMC_SUPPORT
 //#define COREMU_FLUSH_TLB               /* enable broadcast flush tlb request */
