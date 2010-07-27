@@ -191,6 +191,26 @@ GEN_DEC(w);
 GEN_DEC(l);
 GEN_DEC(q);
 
+
+/************************
+ * atomic xadd
+ ************************/
+
+#define GEN_XADD(type) \
+static inline void atomic_xadd##type(DATA_##type *inc, DATA_##type *dist)  \
+{                                                                          \
+    __asm__ __volatile__(                                                  \
+            "lock; xadd"#type" %0, %1"                                     \
+            : "+Q"(*inc), "+m"(*dist)                                      \
+            :                                                              \
+            : "memory","cc");                                              \
+}                                                                          \
+
+GEN_XADD(b);
+GEN_XADD(w);
+GEN_XADD(l);
+GEN_XADD(q);
+
 /* Memory Barriers: x86-64 ONLY now */
 #define mb()    asm volatile("mfence":::"memory")
 #define rmb()   asm volatile("lfence":::"memory")

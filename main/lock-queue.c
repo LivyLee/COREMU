@@ -80,6 +80,11 @@ queue_t *new_queue(void)
     return Q;
 }
 
+void destroy_queue(queue_t *Q)
+{
+    coremu_free(Q);
+}
+
 /* The interface for queue with lock */
 void enqueue(queue_t *Q, data_type value)
 {

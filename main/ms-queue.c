@@ -139,6 +139,11 @@ queue_t *new_queue(void)
     return Q;
 }
 
+void destroy_queue(queue_t *Q)
+{
+    coremu_free(Q);
+}
+
 void enqueue(queue_t *Q, data_type value)
 {
     sigset_t save_sig_set;
