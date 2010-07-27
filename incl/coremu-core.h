@@ -59,4 +59,9 @@ void coremu_wait_all_cores_pause(void);
 /* Wait on a specfic core until it exits... */
 int coremu_wait_tid(CMCore *coreid, void **val_ptr);
 
+#ifdef COREMU_WATCHER
+/* Write log message for a core. */
+void coremu_core_log(const char *fmt, ...);
+#endif
+
 #endif /* _COREMU_CORE_H */

@@ -32,6 +32,7 @@
 
 #define _GNU_SOURCE          /* for some GNU specific interfaces */
 
+#include <stdarg.h>
 #include "utils.h"
 #include "coremu-hw.h"
 #include "coremu-timer.h"
@@ -135,6 +136,16 @@ void coremu_core_init(int id, void *opaque)
 
     /* step 4: set core state to run */
     core->state = CM_STATE_RUN;
+
+#ifdef COREMU_WATCHER
+    char logname[255];
+    snprintf(logname, 255, "%d.corelog", core->serial);
+    core->log = fopen(logname, "w");
+    if (!core->log) {
+        fprintf(stderr, "Can't open log file for core %d\n", core->serial);
+        assert(0);
+    }
+#endif
 }
 
 void coremu_run_all_cores(thr_start_routine thr_fn)
@@ -227,3 +238,15 @@ void coremu_restart_all_cores()
 {
     coremu_cond_broadcast(&pause_cond);
 }
+
+#ifdef COREMU_WATCHER
+
+void coremu_core_log(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(cm_core_self->log, fmt, ap);
+    va_end(ap);
+}
+
+#endif

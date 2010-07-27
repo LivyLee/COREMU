@@ -69,6 +69,9 @@ typedef struct CMCore {
 
     void *opaque;            /* CPUState of QEMU */
     CMCoreState state;       /* state of the CORE */
+#ifdef COREMU_WATCHER
+    FILE *log;               /* log output of cwatcher */
+#endif
 } CMCore;
 
 #endif /* _CM_TYPES_H */
