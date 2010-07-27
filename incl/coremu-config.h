@@ -49,6 +49,8 @@
 /* Enable lock free queue */
 //#define COREMU_LOCKFREE
 
+#define COREMU_DEBUG_MODEL                /* The debug model for coremu */
+
 /* enable lazy invalidate tb */
 //#define COREMU_CMC_SUPPORT
 //#define COREMU_FLUSH_TLB               /* enable broadcast flush tlb request */

@@ -44,6 +44,7 @@ typedef unsigned long data_type;
 typedef struct queue_t queue_t;
 
 queue_t *new_queue(void);
+void destroy_queue(queue_t *Q);
 void enqueue(queue_t *Q, data_type value);
 bool dequeue(queue_t *Q, data_type *value_p);
 int64_t queue_get_size(queue_t *Q);
