@@ -4,7 +4,7 @@ programs  += $(bindir)/watch-test
 
 UTILS_LINK := -lcurses
 
-$(bindir)/watch-test:  $(OBJDIR)/utils/watch-test.o  $(OBJDIR)/utils/watch-client.o 
+$(bindir)/watch-test:  $(OBJDIR)/utils/watch-test.o
 	@mkdir -p $(@D)
 	$(call quiet-command, $(LD) $(UTILS_LINK) -o $@ $^, "  LINK    $@")
 
