@@ -25,6 +25,8 @@
 #ifndef __WATCH_CLIENT
 #define __WATCH_CLIENT
 
+#define inline __attribute__ (( always_inline )) __inline__
+
 typedef long CMWatchID;
 enum {
     WATCH_START = 0,
@@ -33,6 +35,11 @@ enum {
     WATCH_REMOVE,
 };
 
-void cm_insert_watch_point(CMWatchID id, unsigned long addr, unsigned long len);
-
+void inline cm_insert_watch_point(CMWatchID id, unsigned long addr, unsigned long len)
+{
+    __asm__ __volatile__( "int $0x86"
+                          :
+                          : "a"(WATCH_INSERT), "D"(id), "S"(addr), "d"(len)
+                          : "cc");
+}
 #endif
