@@ -121,7 +121,7 @@ void coremu_backtrace()
     nptrs = backtrace(buffer, SIZE);    /* get the address on the frame */
     char **strings = backtrace_symbols(buffer, nptrs);
     if (strings != NULL) {
-        cm_print("Dump the call stack");
+        coremu_print("Dump the call stack");
         for (j = 0; j < nptrs; j++)
             printf("%s\n", strings[j]);
     }
