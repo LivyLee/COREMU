@@ -30,12 +30,10 @@ LIBOBJS += $(OBJDIR)/main/sched.o
 LIBOBJS += $(OBJDIR)/main/timer.o
 LIBOBJS += $(OBJDIR)/main/intr.o
 LIBOBJS += $(OBJDIR)/main/malloc-helper.o
-ifdef $(LOCKFREE)
-	LIBOBJS += $(OBJDIR)/main/ms-queue.o
-else
-	LIBOBJS += $(OBJDIR)/main/lock-queue.o
-endif
+LIBOBJS += $(OBJDIR)/main/lock-queue.o
 LIBOBJS += $(OBJDIR)/main/utils.o
+
+libcoremu: $(OBJDIR)/libcoremu.a
 
 $(OBJDIR)/libcoremu.a: $(LIBOBJS)
 	$(call quiet-command,rm -f $@ && $(AR) rcs $@ $^,"  AR    $(TARGET_DIR)$@")

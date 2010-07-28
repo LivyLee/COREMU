@@ -82,10 +82,11 @@ echo "QEMUSRC := ${qemusrc}" > coremu.mk
 echo "TARGET := ${target}" >> coremu.mk
 echo "PREFIXDIR := ${prefix}" >> coremu.mk
 if [ $lockfree = "true" ]; then
-  echo "LOCKFREE := true" >> coremu.mk
   sed -i -e 's,^//\(#define COREMU_LOCKFREE\),\1,g' $coremuroot/incl/coremu-config.h
+  sed -i -e 's/lock-queue/ms-queue/' $coremuroot/Makefile
 else
   sed -i -e 's,^\(#define COREMU_LOCKFREE\),//\1,g' $coremuroot/incl/coremu-config.h
+  sed -i -e 's/ms-queue/lock-queue/' $coremuroot/Makefile
 fi
 
 # enable or disable corss modifying code in incl/coremu/config.h
