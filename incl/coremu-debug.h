@@ -28,8 +28,10 @@
 #ifndef _CM_DEBUG_H
 #define _CM_DEBUG_H
 
+#include <stdio.h>
+
 #if defined(DEBUG_COREMU)
-# define coremu_debug(fmt, args...) fprintf(stderr, "[COREMU] %s(line %d), %s" fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
+# define coremu_debug(fmt, args...) fprintf(stderr, "[COREMU] %s(line %d), %s " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
 #else
 # define coremu_debug(fmt, args...)
 #endif
