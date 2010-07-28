@@ -78,10 +78,10 @@ struct queue_t {
 
 #define QUEUE_FOREACH(queue, val, command) \
     do { \
-        pointer_t *_p; \
+        node_t *_p; \
         data_type *val; \
-        for (_p = &(queue->Head); _p->ptr != NULL; _p = &(_p->ptr->next)) { \
-            val = &(_p->ptr->value); \
+        for (_p = queue->Head.ptr->next.ptr; _p != NULL; _p = _p->next.ptr) { \
+            val = &(_p->value); \
             { command; }; \
         } \
     } while (0)
@@ -106,7 +106,7 @@ struct queue_t {
     do { \
         node_t *_p; \
         data_type *val; \
-        for (_p = queue->Head; _p != NULL; _p = _p->next) { \
+        for (_p = queue->Head->next; _p != NULL; _p = _p->next) { \
             val = &_p->value; \
             { command; }; \
         } \

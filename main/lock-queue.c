@@ -96,7 +96,8 @@ bool dequeue(queue_t *Q, data_type *value_p)
     if (!new_head)
         return false;
 
-    *value_p = new_head->value;
+    if (value_p)
+        *value_p = new_head->value;
     Q->Head = new_head;
     coremu_free(node);
     atomic_decq(&Q->count);

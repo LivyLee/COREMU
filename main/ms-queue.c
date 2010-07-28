@@ -126,7 +126,7 @@ queue_t *new_queue(void)
 
 void destroy_queue(queue_t *Q)
 {
-    coremu_free(Q);
+    free(Q);
 }
 
 void enqueue(queue_t *Q, data_type value)
@@ -188,7 +188,8 @@ bool dequeue(queue_t *Q, data_type *pvalue)
             } else {                    /* No need to deal with Tail */
                 /* Read value before CAS, otherwise another dequeue might free
 				 * the next node */
-                *pvalue = next.ptr->value;
+                if (pvalue)
+                    *pvalue = next.ptr->value;
                 new_ptr.ptr = next.ptr;
                 new_ptr.count = head.count + 1;
                 if (CAS(&Q->Head, head, new_ptr)) { /* Try to swing Head to the next node */
