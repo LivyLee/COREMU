@@ -58,7 +58,5 @@
 //#define COREMU_PROFILE                 /* enable profiling for COREMU */
 //#define COREMU_RETRY_PROFILE           /* enable profiling the conflict retry number */
 
-#define COREMU_WATCHER
-
 #endif /* _CM_CONFIG_H */
 
