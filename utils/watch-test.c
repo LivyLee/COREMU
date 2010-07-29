@@ -27,14 +27,16 @@
 int main(void)
 {
     int var = 0;
-    printf("&var : 0x%lx\n", &var);
+    cm_start_watch();
+    printf("&var : 0x%p\n", &var);
     printf("Insert watch point\n");
-    cm_insert_watch_point(10, &var, 100);
+    cm_insert_watch_point(10, (unsigned long)&var, 100);
     var = 1;
-    printf("after write : 0x%lx\n", var);
+    printf("after write : 0x%x\n", var);
     printf("REMOVE watch point\n");
-    cm_remove_watch_point(10, &var, 100);
+    cm_remove_watch_point(10, (unsigned long)&var, 100);
     var = 2;
-    printf("after write : 0x%lx\n", var);
+    printf("after write : 0x%x\n", var);
+    cm_stop_watch();
     return 0;
 }
