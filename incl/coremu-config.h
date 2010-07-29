@@ -49,7 +49,7 @@
 /* Enable lock free queue */
 //#define COREMU_LOCKFREE
 
-#define COREMU_DEBUG_MODEL                /* The debug model for coremu */
+#define COREMU_DEBUG_MODE                /* The debug mode for coremu */
 
 /* enable lazy invalidate tb */
 //#define COREMU_CMC_SUPPORT

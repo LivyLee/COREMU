@@ -42,4 +42,28 @@ void inline cm_insert_watch_point(CMWatchID id, unsigned long addr, unsigned lon
                           : "a"(WATCH_INSERT), "D"(id), "S"(addr), "d"(len)
                           : "cc");
 }
+
+void inline cm_remove_watch_point(CMWatchID id, unsigned long addr, unsigned long len)
+{
+    __asm__ __volatile__( "int $0x86"
+                          :
+                          : "a"(WATCH_REMOVE), "D"(id), "S"(addr), "d"(len)
+                          : "cc");
+}
+
+void inline cm_start_watch(void)
+{
+    __asm__ __volatile__( "int $0x86"
+                          :
+                          : "a"(WATCH_START)
+                          : "cc");
+}
+
+void inline cm_stop_watch(void)
+{
+    __asm__ __volatile__( "int $0x86"
+                          :
+                          : "a"(WATCH_STOP)
+                          : "cc");
+}
 #endif
