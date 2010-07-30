@@ -119,9 +119,9 @@ fi
 
 # enable or disable profile support in incl/coremu/config.h
 if [[ $useprofile = "true" ]]; then
-  sed -i -e 's,^//\(#define COREMU_PROFILE\),\1,g' $configfile
+  sed -i -e 's,^//\(#define COREMU_PROFILE_MODE\),\1,g' $configfile
 else
-  sed -i -e 's,^\(#define COREMU_PROFILE\),//\1,g' $configfile
+  sed -i -e 's,^\(#define COREMU_PROFILE_MODE\),//\1,g' $configfile
 fi
 
 #exit 1
