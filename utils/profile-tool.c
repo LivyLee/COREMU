@@ -15,7 +15,7 @@ enum {
 
 void profile_tool(int command)
 {
-    /* Use 88 since wanwan borns in 1988 :) */
+    /* Use 88 since wanwan was born in 1988 :) */
     __asm__ __volatile__ ( "int $0x88"
                            :
                            : "a" (command)
@@ -27,10 +27,10 @@ void help_info()
     printf("usage: profile [COMMAND]\n" \
            "commands:\n" \
            "  -p               prepare the profile\n" \
-           "  -s               start the count profile\n" \
+           "  -s               start the count profiling\n" \
            "  -b               start the backtrace profile\n" \
-           "  -e               end the profile\n" \
-           "  -f               flush the profile information\n" \
+           "  -e               end profiling\n" \
+           "  -f               flush profile information\n" \
            "  -r               get the report of the last profile\n" \
            "  -t               start trace profile\n" \
            "  -o               report trace info\n");
