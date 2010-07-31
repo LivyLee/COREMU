@@ -66,11 +66,17 @@ void coremu_logbuf_free(CMLogbuf *buf)
     coremu_free(buf);
 }
 
+typedef struct {
+    char *buf;
+    char *end;
+} BufBlock;
+
 /* Call log function for each element in the buffer, then free the buffer. */
 static void *log_thr(void *logbuf)
 {
     char *pos;
-    char *curbuf;
+    char *end;
+    BufBlock *block;
     struct timespec tv = {0, 100000000}; /* 0.1 second */
     CMLogbuf *buf = (CMLogbuf *)logbuf;
     int try = 0;
@@ -79,10 +85,13 @@ static void *log_thr(void *logbuf)
 
     /* Wait for 1 second for new log record. */
     while (try < 10) {
-        while (dequeue(buf->queue, (data_type *)&curbuf)) {
-            for (pos = curbuf; pos != curbuf + buf->size; pos += buf->ele_size)
+        while (dequeue(buf->queue, (data_type *)&block)) {
+            pos = block->buf;
+            end = block->end;
+            for (; pos != end; pos += buf->ele_size)
                 buf->func(pos);
-            coremu_free(curbuf);
+            coremu_free(block->buf);
+            coremu_free(block);
             try = 0;
         }
         try++;
@@ -99,8 +108,11 @@ void coremu_logbuf_flush(CMLogbuf *buf)
 {
     coremu_debug("called");
 
-    /* Add old buffer to buffer list. */
-    enqueue(buf->queue, (data_type) buf->buf);
+    /* Add old buffer to buffer list. It doesn't need to be full. */
+    BufBlock *block = coremu_mallocz(sizeof(*block));
+    block->buf = buf->buf;
+    block->end = buf->cur;
+    enqueue(buf->queue, (data_type) block);
 
     buf->buf = buf->cur = coremu_mallocz(buf->size);
     buf->end = buf->buf + buf->size;
