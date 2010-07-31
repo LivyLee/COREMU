@@ -31,11 +31,12 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 #include <pthread.h>
 #include "coremu-config.h"
 #include "queue.h"
 
-typedef void (*coremu_log_func)(void *);
+typedef void (*coremu_log_func)(FILE *, void *);
 
 typedef struct buflst buflst;
 
@@ -52,9 +53,11 @@ typedef struct {
     queue_t *queue;  /* Holding all the allocated buffer. */
     bool thread_running; /* Whether log thread is running. */
     pthread_t thread;
+
+    FILE *file;
 } CMLogbuf;
 
-CMLogbuf *coremu_logbuf_new(int n, int ele_size, coremu_log_func func);
+CMLogbuf *coremu_logbuf_new(int n, int ele_size, coremu_log_func func, FILE *file);
 /* Must call this function to write all the content in buffer out. */
 void coremu_logbuf_free(CMLogbuf *buf);
 

@@ -30,7 +30,7 @@
 /*#define DEBUG_COREMU*/
 #include "coremu-debug.h"
 
-CMLogbuf *coremu_logbuf_new(int n, int ele_size, coremu_log_func func)
+CMLogbuf *coremu_logbuf_new(int n, int ele_size, coremu_log_func func, FILE *file)
 {
     CMLogbuf *logbuf = coremu_mallocz(sizeof(*logbuf));
 
@@ -42,6 +42,7 @@ CMLogbuf *coremu_logbuf_new(int n, int ele_size, coremu_log_func func)
     logbuf->func = func;
 
     logbuf->queue = new_queue();
+    logbuf->file = file;
 
     return logbuf;
 }
@@ -58,7 +59,7 @@ void coremu_logbuf_free(CMLogbuf *buf)
 
     /* First output the remaining record. */
     for (pos = buf->buf; pos != buf->cur; pos += buf->ele_size)
-        buf->func(pos);
+        buf->func(buf->file, pos);
 
     /* Free the memory. */
     coremu_free(buf->buf);
@@ -89,7 +90,7 @@ static void *log_thr(void *logbuf)
             pos = block->buf;
             end = block->end;
             for (; pos != end; pos += buf->ele_size)
-                buf->func(pos);
+                buf->func(buf->file, pos);
             coremu_free(block->buf);
             coremu_free(block);
             try = 0;
