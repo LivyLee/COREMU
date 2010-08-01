@@ -125,3 +125,8 @@ void coremu_logbuf_flush(CMLogbuf *buf)
     }
 }
 
+void coremu_logbuf_wait_flush(CMLogbuf *buf)
+{
+    while (buf->thread_running)
+        usleep(1000);
+}

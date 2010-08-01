@@ -33,6 +33,7 @@ enum {
     WATCH_STOP,
     WATCH_INSERT,
     WATCH_REMOVE,
+    WATCH_STOP_ALL,
 };
 
 void inline cm_insert_watch_point(CMWatchID id, unsigned long addr, unsigned long len)
@@ -64,6 +65,14 @@ void inline cm_stop_watch(void)
     __asm__ __volatile__( "int $0x86"
                           :
                           : "a"(WATCH_STOP)
+                          : "cc");
+}
+
+void inline cm_stop_all_watch(void)
+{
+    __asm__ __volatile__( "int $0x86"
+                          :
+                          : "a"(WATCH_STOP_ALL)
                           : "cc");
 }
 #endif

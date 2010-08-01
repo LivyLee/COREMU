@@ -64,6 +64,9 @@ void coremu_logbuf_free(CMLogbuf *buf);
 /* Flush the buffer content in a thread. */
 void coremu_logbuf_flush(CMLogbuf *buf);
 
+/* Wait the flush thread to finish */
+void coremu_logbuf_wait_flush(CMLogbuf *buf);
+
 /* Assmue that the buffer contains space for at least size space.
  * Use this macro to directly write the content into the buffer, so we can avoid
  * calling memcpy to copy the content. */
