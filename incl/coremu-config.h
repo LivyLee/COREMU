@@ -49,13 +49,13 @@
 /* Enable lock free queue */
 //#define COREMU_LOCKFREE
 
-//#define COREMU_DEBUG_MODE                /* The debug mode for coremu */
+#define COREMU_DEBUG_MODE                /* The debug mode for coremu */
 
 /* enable lazy invalidate tb */
 //#define COREMU_CMC_SUPPORT
 //#define COREMU_FLUSH_TLB               /* enable broadcast flush tlb request */
 
-//#define COREMU_PROFILE_MODE              /* enable profiling for COREMU */
+#define COREMU_PROFILE_MODE              /* enable profiling for COREMU */
 //#define COREMU_RETRY_PROFILE           /* enable profiling the conflict retry number */
 
 #endif /* _CM_CONFIG_H */

@@ -11,6 +11,9 @@ enum {
     CM_PROFILE_FLUSH,
     CM_PROFILE_START_TRACE, /* patches the TB to collect backtrace info. */
     CM_PROFILE_REPORT_TRACE,
+
+	CM_PROFILE_CACHE_START,
+	CM_PROFILE_CACHE_STOP
 };
 
 void profile_tool(int command)
@@ -33,7 +36,9 @@ void help_info()
            "  -f               flush profile information\n" \
            "  -r               get the report of the last profile\n" \
            "  -t               start trace profile\n" \
-           "  -o               report trace info\n");
+           "  -o               report trace info\n"
+	       "  -m               start memory trace collection\n"
+		   "  -n               stop memory trace collection\n");
     exit(1);
 }
 
@@ -47,7 +52,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    while((c = getopt(argc, argv, "psrfehto")) != -1)
+    while((c = getopt(argc, argv, "psrfehtomn")) != -1)
     {
         switch(c) {
         case 'p':
@@ -71,7 +76,13 @@ int main(int argc, char *argv[])
         case 'o':
             profile_tool(CM_PROFILE_REPORT_TRACE);
             break;
-        case 'h':
+		case 'm':
+            profile_tool(CM_PROFILE_CACHE_START);
+            break;
+        case 'n':
+            profile_tool(CM_PROFILE_CACHE_STOP);
+            break;
+		case 'h':
             help_info();
             break;
         default :

@@ -216,5 +216,18 @@ GEN_XADD(q);
 #define rmb()   asm volatile("lfence":::"memory")
 #define wmb()   asm volatile("sfence" ::: "memory")
 
+static inline uint64_t atomic_xadd2(uint64_t *target)
+{
+    register uint64_t __result;
+    asm volatile (
+        "mov $2, %0\n"
+        "lock xaddq %0, %1\n"
+        : "=r" (__result), "+m" (*target)
+        : 
+        : "cc", "memory"
+    );
+    return __result;
+}
+
 #endif /* _COREMU_ATOMIC_H */
 
