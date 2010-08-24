@@ -1,21 +1,15 @@
 bindir    := $(BINDIR)/utils
-#programs  += $(bindir)/kill $(bindir)/monitor
-programs  += $(bindir)/watch-test $(bindir)/watch-control
 
-UTILS_LINK := -lcurses
+programs  += $(bindir)/watch-test $(bindir)/watch-control $(bindir)/monitor
 
 $(bindir)/watch-test:  $(OBJDIR)/utils/watch-test.o
 	@mkdir -p $(@D)
-	$(call quiet-command, $(LD) $(UTILS_LINK) -o $@ $^, "  LINK    $@")
+	$(call quiet-command, $(LD) -o $@ $^, "  LINK    $@")
 
-$(bindir)/watch-control:  $(OBJDIR)/utils/watch-control.o
+$(bindir)/watch-control: $(OBJDIR)/utils/watch-control.o
 	@mkdir -p $(@D)
-	$(call quiet-command, $(LD) $(UTILS_LINK) -o $@ $^, "  LINK    $@")
-
-$(bindir)/kill:  $(OBJDIR)/utils/kill.o
-	@mkdir -p $(@D)
-	$(call quiet-command, $(LD) $(LDFLAGS) $(UTILS_LINK) -o $@ $^, "  LINK    $@")
+	$(call quiet-command, $(LD) -o $@ $^, "  LINK    $@")
 
 $(bindir)/monitor:  $(OBJDIR)/utils/monitor.o
 	@mkdir -p $(@D)
-	$(call quiet-command, $(LD) $(LDFLAGS) $(UTILS_LINK) -o $@ $^, "  LINK    $@")
+	$(call quiet-command, $(LD) -lcurses -o $@ $^, "  LINK    $@")
