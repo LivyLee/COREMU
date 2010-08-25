@@ -88,9 +88,7 @@ if [ -d $coremuroot/obj ]; then
 fi
 mkdir -p $coremuroot/obj/qemu
 
-echo "QEMUSRC := ${qemusrc}" > coremu.mk
-echo "TARGET := ${target}" >> coremu.mk
-echo "PREFIXDIR := ${prefix}" >> coremu.mk
+echo "PREFIXDIR := ${prefix}" > coremu.mk
 echo "COREMU_LIB = ${coremuroot}/obj/libcoremu.a" > ${qemusrc}/coremu.mk
 
 configfile=$coremuroot/incl/coremu-config.h

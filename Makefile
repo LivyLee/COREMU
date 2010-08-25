@@ -21,9 +21,6 @@ all: $(objects) $(programs) $(archive) qemu
 
 install: qemu-install bios-install
 
-coremu: $(objects) $(programs)
-	@echo $LDFLAGS
-
 LIBOBJS =  $(OBJDIR)/main/core.o
 LIBOBJS += $(OBJDIR)/main/hw.o
 LIBOBJS += $(OBJDIR)/main/sched.o
