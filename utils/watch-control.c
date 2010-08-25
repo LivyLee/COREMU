@@ -30,12 +30,11 @@
 
 void help_info()
 {
-    printf("usage: profile [COMMAND]\n" \
+    printf("usage: watch-control [COMMAND]\n" \
            "commands:\n" \
-           "  -b               start the count profile\n" \
-           "  -e               end the profile\n" \
-           "  -s               stop all the profile\n" \
-           "  -r               report trace info\n");
+           "  -b               turn on the debug mode \n" \
+           "  -e               stop the debug mode for current thread\n" \
+           "  -s               turn off the debug mode and flush the report\n");
     exit(1);
 }
 
@@ -50,14 +49,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    while((c = getopt(argc, argv, "bserh")) != -1)
+    while((c = getopt(argc, argv, "bseh")) != -1)
     {
         switch(c) {
         case 'b':
             cm_start_watch();
-            break;
-        case 'r':
-            //cm_stop_watch();
             break;
         case 'e':
             cm_stop_watch();
