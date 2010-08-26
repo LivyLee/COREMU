@@ -6,7 +6,7 @@ cores=$3
 
 memsize=4096
 
-sudo $qemu \
+sudo LD_LIBRARY_PATH=LIBDIR $qemu \
     -smp $cores \
     -net none \
     -hda $img \

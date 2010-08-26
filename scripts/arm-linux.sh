@@ -8,7 +8,7 @@ kern=$2
 initrd=$3
 cores=$4
 
-sudo $qemu \
+sudo LD_LIBRARY_PATH=LIBDIR $qemu \
 	-k en_us \
 	-M realview-pbx-a9 \
 	-nographic \
