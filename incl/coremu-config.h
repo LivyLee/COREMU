@@ -50,7 +50,7 @@
 //#define COREMU_LOCKFREE
 
 #define COREMU_DEBUG_MODE                /* The debug mode for coremu */
-//#define COREMU_CACHESIM_MODE             /* Cache simulation mode */
+#define COREMU_CACHESIM_MODE             /* Cache simulation mode */
 
 /* enable lazy invalidate tb */
 //#define COREMU_CMC_SUPPORT
