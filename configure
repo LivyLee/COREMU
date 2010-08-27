@@ -131,6 +131,3 @@ ${qemusrc}/configure --prefix=${prefix} \
     --extra-cflags="-I${coremuroot}/incl -g" \
     --target-list="${target}" \
     --disable-werror \
-
-# modify scripts to specify the LD_LIBRARY_PATH according to prefix
-sed -i -e "s,LD_LIBRARY_PATH=[^ ]*,LD_LIBRARY_PATH=$prefix/lib," $coremuroot/scripts/{x86_64-linux.sh,arm-linux.sh}
