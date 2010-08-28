@@ -32,6 +32,13 @@
 /*
  * The declaration of log entry type
  */
+#include <stdio.h>
+#include <stdint.h>
+#include <assert.h>
+#include "cm-instrument.h"
+#include "cm-logbuffer.h"
+#include "cm-watch-util.h"
+
 typedef struct kernel_bug_info {
     uint64_t vnum;      /* The infomation number */
     uint64_t eip;       /* The eip of the memory access instruction */
@@ -49,6 +56,15 @@ static __thread CMLogbuf *kernel_log_buf;
 
 /* The trigger function ID */
 #define TRIGGER_FUNC_ID 1 
+
+static inline void atomic_xaddq(uint64_t *inc, uint64_t *dist)
+{
+    __asm__ __volatile__(
+            "lock; xaddq %0, %1"
+            : "+Q"(*inc), "+m"(*dist)
+            :
+            : "memory","cc");
+}
 
 /*
  * The log recoding function.
@@ -80,7 +96,7 @@ static void kernel_trigger_function(void *opaque)
     CMWParams *wpara = (CMWParams *)opaque;
     
     if (wpara->value == 0) {
-        COREMU_LOGBUF_LOG(kernel_log_buf, record, {
+        CM_LOGBUF_LOG(kernel_log_buf, record, {
             kernel_bug_info * info = (kernel_bug_info *)record;
             info->vnum = version_num;
             info->eip = cm_get_cpu_eip();
@@ -122,8 +138,8 @@ void log_buffer_init(void)
     /* XXX: initail the log buffer here */
     char cpu_log_name[100];
     sprintf(cpu_log_name, "kernel_bug_log%d", cm_get_cpu_idx());
-    FILE *file = fopen(cpu_log_name,"w");
-    kernel_log_buf = coremu_logbuf_new(100, sizeof(kernel_bug_info), 
+    FILE *file = fopen(cpu_log_name,"w");
+    kernel_log_buf = cm_logbuf_new(100, sizeof(kernel_bug_info),
                                         kernel_record_log, file);
 }
 
@@ -131,10 +147,10 @@ void log_buffer_init(void)
  * Flush the kernel_log_buf.
  * This function will be called when the debug mode is turned off.
  */
-static void log_buffer_flush(void)
+void log_buffer_flush(void)
 {
    /* XXX: Flush the log buffer here */
-   coremu_logbuf_flush(kernel_log_buf);
-   coremu_logbuf_wait_flush(kernel_log_buf);
+   cm_logbuf_flush(kernel_log_buf);
+   cm_logbuf_wait_flush(kernel_log_buf);
    fflush(kernel_log_buf->file);
 } 

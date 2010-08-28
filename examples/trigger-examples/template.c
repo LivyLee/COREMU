@@ -104,7 +104,7 @@ void log_buffer_init(void)
     char cpu_log_name[100];
     sprintf(cpu_log_name, "example_bug_log%d", cm_get_cpu_idx());
     FILE *file = fopen(cpu_log_name,"w");
-    example_log_buf = coremu_logbuf_new(100, sizeof(example_info), 
+    example_log_buf = coremu_logbuf_new(100, sizeof(example_info),
                                         example_record_log, file);
 }
 
@@ -112,7 +112,7 @@ void log_buffer_init(void)
  * Flush the example_log_buf.
  * This function will be called when the debug mode is turned off.
  */
-static void log_buffer_flush(void)
+void log_buffer_flush(void)
 {
    /* XXX: flush the log buffer here */
    /* ... */
