@@ -33,7 +33,7 @@ void help_info()
     printf("usage: watch-control [COMMAND]\n" \
            "commands:\n" \
            "  -b               turn on the debug mode \n" \
-           "  -e               stop the debug mode for current thread\n" \
+           "  -e               stop the debug mode for current program\n" \
            "  -s               turn off the debug mode and flush the report\n");
     exit(1);
 }

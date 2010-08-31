@@ -103,8 +103,8 @@ void log_buffer_init(void)
     /* XXX: initail the log buffer here */
     char cpu_log_name[100];
     sprintf(cpu_log_name, "example_bug_log%d", cm_get_cpu_idx());
-    FILE *file = fopen(cpu_log_name,"w");
-    example_log_buf = coremu_logbuf_new(100, sizeof(example_info),
+    FILE *file = fopen(cpu_log_name,"w");
+    example_log_buf = cm_logbuf_new(100, sizeof(example_info),
                                         example_record_log, file);
 }
 

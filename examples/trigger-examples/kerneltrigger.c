@@ -55,7 +55,7 @@ typedef struct kernel_bug_info {
 static __thread CMLogbuf *kernel_log_buf;
 
 /* The trigger function ID */
-#define TRIGGER_FUNC_ID 1 
+#define TRIGGER_FUNC_ID 0 
 
 static inline void atomic_xaddq(uint64_t *inc, uint64_t *dist)
 {
