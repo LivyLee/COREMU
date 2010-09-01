@@ -3,9 +3,9 @@ COREMU utility functions
 
 1.) Instrumentation function
 
-COREMU provides several instrumentation function to get the information about
+COREMU provides several instrumentation functions to get the information about
 the emulated system. These functions are declared in "cm-instrument.h".
-
+(All the header files are in INSTALL_DIR/include)
 Here's a list of all the functions (Note that these
 functions can only be called in VCPU thread to get information for that VCPU):
 
@@ -26,7 +26,18 @@ details, consult section 3.) Log buffer.
 
 2.) Watch util
 
+COREMU provides some util functions to register trigger function or print the
+access infomation. 
+  
+Register a trigger function: 
+    void cm_register_wtrigger_func(CMTriggerID id, CMWatch_Trigger tfunc);
 
+   Associate the trigger function with an id which is used to specify the
+function. The trigger function must be the define like below:
+void trigger_func_name(void *opaque);
+
+Print the access infomation passed by COREMU:
+    void print_wpara(CMWParams *wpara)
 
 3.) Log buffer
 
