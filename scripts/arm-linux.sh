@@ -8,7 +8,7 @@ kern=$2
 initrd=$3
 cores=$4
 
-sudo LD_LIBRARY_PATH=/home/tiger/project/coremu/coremu-open-source/coremu/bin/lib $qemu \
+sudo $qemu \
 	-k en_us \
 	-M realview-pbx-a9 \
 	-nographic \
