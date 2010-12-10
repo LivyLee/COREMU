@@ -32,6 +32,7 @@
 #include <signal.h>
 #include <stdbool.h>
 #include "utils.h"
+#include "coremu-init.h"
 #include "coremu-hw.h"
 #include "coremu-intr.h"
 #include "coremu-sched.h"
@@ -141,6 +142,9 @@ void coremu_send_intr(void *e, int coreid)
 {
     cm_assert(e, "interrupt argument is NULL");
     CMCore *core = coremu_get_core(coreid);
+
+    if (!coremu_init_done_p())
+        return;
 
     coremu_put_intr(core, e);
 
