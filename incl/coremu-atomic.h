@@ -106,10 +106,10 @@ static inline DATA_##type atomic_exchange##type(                \
     return out;                                                 \
 }
 
-GEN_EXCHANGE(b);
-GEN_EXCHANGE(w);
-GEN_EXCHANGE(l);
-GEN_EXCHANGE(q);
+GEN_EXCHANGE(b)
+GEN_EXCHANGE(w)
+GEN_EXCHANGE(l)
+GEN_EXCHANGE(q)
 
 /************************
  * compare and exchange
@@ -134,10 +134,10 @@ static inline DATA_##type atomic_compare_exchange##type(              \
     return out;                                                       \
 }
 
-GEN_CMPEXCHANGE(b);
-GEN_CMPEXCHANGE(w);
-GEN_CMPEXCHANGE(l);
-GEN_CMPEXCHANGE(q);
+GEN_CMPEXCHANGE(b)
+GEN_CMPEXCHANGE(w)
+GEN_CMPEXCHANGE(l)
+GEN_CMPEXCHANGE(q)
 
 static inline uint8_t atomic_compare_exchange16b(uint64_t *memp,
                                                  uint64_t rax, uint64_t rdx,
@@ -167,10 +167,10 @@ static inline void atomic_inc##type(DATA_##type *p)     \
             : "cc");                                    \
 }
 
-GEN_INC(b);
-GEN_INC(w);
-GEN_INC(l);
-GEN_INC(q);
+GEN_INC(b)
+GEN_INC(w)
+GEN_INC(l)
+GEN_INC(q)
 
 /************************
  * atomic dec
@@ -186,10 +186,27 @@ static inline void atomic_dec##type(DATA_##type *p)     \
             : "cc");                                    \
 }
 
-GEN_DEC(b);
-GEN_DEC(w);
-GEN_DEC(l);
-GEN_DEC(q);
+GEN_DEC(b)
+GEN_DEC(w)
+GEN_DEC(l)
+GEN_DEC(q)
+
+/* Return the old value in addr. */
+#define GEN_FETCH_AND_ADD(type) \
+static inline DATA_##type atomic_fetch_and_add##type(   \
+        DATA_##type* addr, DATA_##type val) {           \
+    asm volatile(                                       \
+        "lock; xadd"#type" %0, %1"                      \
+        : "+a"(val), "+m"(*addr)                        \
+        :                                               \
+        : "cc");                                        \
+    return val;                                         \
+}
+
+GEN_FETCH_AND_ADD(b)
+GEN_FETCH_AND_ADD(w)
+GEN_FETCH_AND_ADD(l)
+GEN_FETCH_AND_ADD(q)
 
 /* Memory Barriers: x86-64 ONLY now */
 #define mb()    asm volatile("mfence":::"memory")

@@ -29,8 +29,8 @@
 #ifndef _CM_DEBUG_H
 #define _CM_DEBUG_H
 
-#if defined(DEBUG_COREMU) && defined(CONFIG_COREMU)
-# define debug(fmt, args...) fprintf(stderr, "[COREMU] %s(line %d), %s" fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
+#if defined(DEBUG_COREMU)
+# define debug(fmt, args...) fprintf(stderr, "[COREMU] %s(line %d), %s: " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
 #else
 # define debug(fmt, args...)
 #endif
