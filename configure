@@ -26,7 +26,7 @@ for opt do
     ;;
     --use-lockfree) lockfree="true"
     ;;
-    --cross-mod-code) corsscode="true"
+    --cross-mod-code) crosscode="true"
     ;;
     --target=*)
     if [ -z $target ]; then
@@ -86,7 +86,7 @@ if [ $lockfree = "true" ]; then
 fi
 
 # enable or disable corss modifying code in incl/coremu/config.h
-if [[ $corsscode = "true" ]]; then
+if [[ $crosscode = "true" ]]; then
   sed -i -e 's,^//\(#define COREMU_CMC_SUPPORT\),\1,g' $coremuroot/incl/coremu-config.h
 else
   sed -i -e 's,^\(#define COREMU_CMC_SUPPORT\),//\1,g' $coremuroot/incl/coremu-config.h
