@@ -26,6 +26,7 @@ LIBOBJS += $(OBJDIR)/main/hw.o
 LIBOBJS += $(OBJDIR)/main/sched.o
 LIBOBJS += $(OBJDIR)/main/timer.o
 LIBOBJS += $(OBJDIR)/main/intr.o
+LIBOBJS += $(OBJDIR)/main/logbuffer.o
 LIBOBJS += $(OBJDIR)/main/malloc-helper.o
 ifdef LOCKFREE
 	LIBOBJS += $(OBJDIR)/main/ms-queue.o

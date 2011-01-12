@@ -33,22 +33,10 @@
 #include <signal.h>
 #include <assert.h>
 
+#undef COREMU_LOCKFREE
 #include "queue.h"
 #include "coremu-atomic.h"
 #include "coremu-malloc.h"
-#include "coremu-spinlock.h"
-
-typedef struct node_t {
-    struct node_t *next;     /* the next node, together with the tag */
-    data_type value;         /* an integer which can hold a pointer */
-} node_t;
-
-struct queue_t {
-    node_t *Head;            /* head of the queue */
-    node_t *Tail;            /* tail of the queue */
-    uint64_t count;
-    CMSpinLock t_lock;
-};
 
 static node_t *new_node(void)
 {
@@ -80,6 +68,11 @@ queue_t *new_queue(void)
     return Q;
 }
 
+void destroy_queue(queue_t *Q)
+{
+    coremu_free(Q);
+}
+
 /* The interface for queue with lock */
 void enqueue(queue_t *Q, data_type value)
 {
@@ -103,7 +96,8 @@ bool dequeue(queue_t *Q, data_type *value_p)
     if (!new_head)
         return false;
 
-    *value_p = new_head->value;
+    if (value_p)
+        *value_p = new_head->value;
     Q->Head = new_head;
     coremu_free(node);
     atomic_decq(&Q->count);
