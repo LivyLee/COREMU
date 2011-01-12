@@ -32,22 +32,15 @@
 
 #include <stdint.h>
 
-#define DATA_b uint8_t
-#define DATA_w uint16_t
-#define DATA_l uint32_t
-#define DATA_q uint64_t
+#define __inline__ inline __attribute__((always_inline))
 
-/************************
- * bit test and set
- ************************/
-
-static inline uint8_t bit_testandset(int *base, int off)
+static __inline__ uint8_t bit_testandset(int *base, int off)
 {
     uint8_t readval = 0;
 
     /* CF <-- Bit(BitBase, BitOffset). */
     __asm__ __volatile__ (
-            "lock; btsl %2,%0\n\t"
+           "lock; btsl %2,%0\n\t"
             "setb %1\n\t"
             : "=m" (*base),"=a" (readval)
             : "Ir" (off)
@@ -56,7 +49,7 @@ static inline uint8_t bit_testandset(int *base, int off)
     return readval;
 }
 
-static inline uint8_t bit_testandreset(int *base, int off)
+static __inline__ uint8_t bit_testandreset(int *base, int off)
 {
     uint8_t readval = 0;
 
@@ -71,7 +64,7 @@ static inline uint8_t bit_testandreset(int *base, int off)
     return readval;
 }
 
-static inline uint8_t bit_test(int *base, int off)
+static __inline__ uint8_t bit_test(int *base, int off)
 {
     uint8_t readval = 0;
 
@@ -86,62 +79,12 @@ static inline uint8_t bit_test(int *base, int off)
     return readval;
 }
 
-/************************
- * exchange
- ************************/
-
-/* swap the value VAL and *p.
- * Return the value swapped out from memory. */
-
-#define GEN_EXCHANGE(type) \
-static inline DATA_##type atomic_exchange##type(                \
-        DATA_##type *p, DATA_##type val)                        \
-{                                                               \
-    DATA_##type out;                                            \
-    __asm __volatile(                                           \
-            "lock; xchg"#type" %1,%2 \n\t"                      \
-            : "=a" (out), "+m" (*p)                             \
-            : "a" (val)                                         \
-            );                                                  \
-    return out;                                                 \
-}
-
-GEN_EXCHANGE(b);
-GEN_EXCHANGE(w);
-GEN_EXCHANGE(l);
-GEN_EXCHANGE(q);
-
-/************************
- * compare and exchange
- ************************/
-
-/* Atomically compare the value in "p" with "old", and set "p" to "newv"
- * if equal.
- *
- * Return value is the previous value of "p".  So if return value is same
- * as "old", the swap occurred, otherwise it did not. */
-
-#define GEN_CMPEXCHANGE(type) \
-static inline DATA_##type atomic_compare_exchange##type(              \
-        DATA_##type *p, DATA_##type old, DATA_##type newv)            \
-{                                                                     \
-    DATA_##type out;                                                  \
-    __asm__ __volatile__ (                                            \
-            "lock; cmpxchg"#type" %2,%1"                              \
-            : "=a" (out), "+m" (*p)                                   \
-            : "q" (newv), "0" (old)                                   \
-            : "cc");                                                  \
-    return out;                                                       \
-}
-
-GEN_CMPEXCHANGE(b);
-GEN_CMPEXCHANGE(w);
-GEN_CMPEXCHANGE(l);
-GEN_CMPEXCHANGE(q);
-
-static inline uint8_t atomic_compare_exchange16b(uint64_t *memp,
-                                                 uint64_t rax, uint64_t rdx,
-                                                 uint64_t rbx, uint64_t rcx)
+// Is this the correct way to detect 64 system?
+#if (__LP64__== 1)
+static __inline__ uint8_t
+atomic_compare_exchange16b(uint64_t *memp,
+                           uint64_t rax, uint64_t rdx,
+                           uint64_t rbx, uint64_t rcx)
 {
     uint8_t z;
     __asm __volatile__ ( "lock; cmpxchg16b %3\n\t"
@@ -151,50 +94,35 @@ static inline uint8_t atomic_compare_exchange16b(uint64_t *memp,
                          : "memory", "cc" );
     return z;
 }
-
-
-/************************
- * atomic inc
- ************************/
-
-#define GEN_INC(type) \
-static inline void atomic_inc##type(DATA_##type *p)     \
-{                                                       \
-    __asm__ __volatile__(                               \
-            "lock; inc"#type" %0"                       \
-            : "+m" (*p)                                 \
-            :                                           \
-            : "cc");                                    \
-}
-
-GEN_INC(b);
-GEN_INC(w);
-GEN_INC(l);
-GEN_INC(q);
-
-/************************
- * atomic dec
- ************************/
-
-#define GEN_DEC(type) \
-static inline void atomic_dec##type(DATA_##type *p)     \
-{                                                       \
-    __asm__ __volatile__(                               \
-            "lock; dec"#type" %0"                       \
-            : "+m" (*p)                                 \
-            :                                           \
-            : "cc");                                    \
-}
-
-GEN_DEC(b);
-GEN_DEC(w);
-GEN_DEC(l);
-GEN_DEC(q);
+#endif
 
 /* Memory Barriers: x86-64 ONLY now */
 #define mb()    asm volatile("mfence":::"memory")
 #define rmb()   asm volatile("lfence":::"memory")
 #define wmb()   asm volatile("sfence" ::: "memory")
+
+#define LOCK_PREFIX "lock; "
+
+#define coremu_xglue(a, b) a ## b
+// If a/b is macro, it will expand first, then pass to coremu_xglue
+#define coremu_glue(a, b) coremu_xglue(a, b)
+
+#define coremu_xstr(s) # s
+#define coremu_str(s) coremu_xstr(s)
+
+#define DATA_BITS 8
+#include "atomic-template.h"
+
+#define DATA_BITS 16
+#include "atomic-template.h"
+
+#define DATA_BITS 32
+#include "atomic-template.h"
+
+#if (__LP64__== 1)
+#define DATA_BITS 64
+#include "atomic-template.h"
+#endif
 
 #endif /* _COREMU_ATOMIC_H */
 
