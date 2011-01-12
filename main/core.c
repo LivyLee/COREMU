@@ -139,6 +139,11 @@ void coremu_core_init(int id, void *opaque)
     core->state = CM_STATE_RUN;
 }
 
+int coremu_get_core_id()
+{
+    return coremu_get_core_self() - cm_cores;
+}
+
 void coremu_run_all_cores(thr_start_routine thr_fn)
 {
     CMCore *cur;

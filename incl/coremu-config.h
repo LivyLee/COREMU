@@ -48,5 +48,7 @@
 
 #include "coremu-feature.h"
 
+#define CONFIG_REPLAY
+
 #endif /* _CM_CONFIG_H */
 
