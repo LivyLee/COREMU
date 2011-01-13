@@ -8,7 +8,8 @@ Options:
     --prefix=<path>    Install location, default is ./bin
     --cross-mod-code   Support cross modifying code
     --use-lockfree     Use lock free concurrent queue instead of lock based version.
-    --target=<target>  Targets will be built, supports x86_64 and arm. x86_64 is default.
+    --target=<target>  Targets will be built, supports i386, x86_64 and arm.
+                       x86_64 is default.
                        This option can be used for more than one time to build
                        more than one target.
 EOF
