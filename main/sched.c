@@ -126,7 +126,7 @@ void coremu_init_sched_all()
     low_prio = (avg_prio + min_prio) / 2;
     high_prio = (max_prio + avg_prio) / 2;
 
-    cm_print("[priority]: max[%d], min[%d], "
+    coremu_print("[priority]: max[%d], min[%d], "
              "low[%d], avg[%d], high[%d]",
              max_prio, min_prio, low_prio, avg_prio, high_prio);
 
@@ -255,10 +255,10 @@ static void display_thread_sched_attr(char *msg)
     prio = getpriority(PRIO_PROCESS, 0);
     assert(!pthread_getschedparam(pthread_self(), &policy, &param));
 
-    cm_print("-- tid[%lu] %s start --",
+    coremu_print("-- tid[%lu] %s start --",
              (unsigned long int)coremu_gettid(), msg);
 
-    cm_print("policy=%s, priority=%d",
+    coremu_print("policy=%s, priority=%d",
              (policy == SCHED_FIFO) ?
 				 "SCHED_FIFO" :
                  (policy == SCHED_RR) ?
@@ -267,6 +267,6 @@ static void display_thread_sched_attr(char *msg)
 						 "SCHED_OTHER" :
 						 "???", prio);
 
-    cm_print("-- thr[%lu] %s end --\n",
+    coremu_print("-- thr[%lu] %s end --\n",
              (unsigned long int)coremu_gettid(), msg);
 }

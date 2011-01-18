@@ -70,7 +70,7 @@ extern void coremu_core_signal_handler(int signo, siginfo_t * info,
                                        void *context);
 void coremu_init(int smp_cpus)
 {
-    cm_print("\nTIMERRTSIG:\t\t%d"
+    coremu_print("\nTIMERRTSIG:\t\t%d"
              "\nCOREMU_TIMER_SIGNAL:\t%d"
              "\nCOREMU_TIMER_ALARM:\t%d"
              "\nCOREMU_SIGNAL:\t\t%d"
@@ -124,10 +124,10 @@ void coremu_core_init(int id, void *opaque)
 
     /* step 2: init the hardware event queue and its lock */
     err = pthread_mutexattr_init(&attr);
-    cm_assert((err == 0), "cannot init the attribute");
+    coremu_assert((err == 0), "cannot init the attribute");
 
     err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
-    cm_assert((err == 0), "cannot set mutex type");
+    coremu_assert((err == 0), "cannot set mutex type");
     core->intr_queue = new_queue();
 
     /* step 3: init opaque state */
@@ -149,7 +149,7 @@ void coremu_run_all_cores(thr_start_routine thr_fn)
 
     for (cur = cm_cores; cur != cm_cores + cm_smp_cpus; cur++) {
         err = pthread_create(&cur->thread, &thr_attr, thr_fn, cur->opaque);
-        cm_assert((!err), "pthread creation fails...");
+        coremu_assert((!err), "pthread creation fails...");
     }
 
     pthread_attr_destroy(&thr_attr);
