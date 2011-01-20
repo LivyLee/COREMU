@@ -21,9 +21,6 @@ all: $(objects) $(programs) $(archive) qemu
 
 install: qemu-install bios-install
 
-coremu: $(objects) $(programs)
-	@echo $LDFLAGS
-
 LIBOBJS =  $(OBJDIR)/main/core.o
 LIBOBJS += $(OBJDIR)/main/hw.o
 LIBOBJS += $(OBJDIR)/main/sched.o
@@ -36,6 +33,8 @@ else
 	LIBOBJS += $(OBJDIR)/main/lock-queue.o
 endif
 LIBOBJS += $(OBJDIR)/main/utils.o
+
+libcoremu: $(OBJDIR)/libcoremu.a
 
 $(OBJDIR)/libcoremu.a: $(LIBOBJS)
 	$(call quiet-command,rm -f $@ && $(AR) rcs $@ $^,"  AR    $(TARGET_DIR)$@")
