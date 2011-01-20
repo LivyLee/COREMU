@@ -10,7 +10,8 @@ Options:
     --use-lockfree     Use lock free concurrent queue instead of lock based version
     --use-debug        Enable debug support for guest
     --use-cachesim     Enable cache simulation support for guest
-    --target=<target>  Targets will be built, supports x86_64 and arm. x86_64 is default
+    --target=<target>  Targets will be built, supports i386, x86_64 and arm.
+                       x86_64 is default.
                        This option can be used for more than one time to build
                        more than one target
 EOF
@@ -30,7 +31,7 @@ for opt do
     ;;
     --use-lockfree) lockfree="true"
     ;;
-    --cross-mod-code) corsscode="true"
+    --cross-mod-code) crosscode="true"
     ;;
     --use-debug) usedebug="true"
     ;;
@@ -102,8 +103,8 @@ else
 fi
 
 # enable or disable corss modifying code in incl/coremu/config.h
-if [[ $corsscode = "true" ]]; then
-  sed -i -e 's,^//\(#define COREMU_CMC_SUPPORT\),\1,g' $configfile
+if [[ $crosscode = "true" ]]; then
+  sed -i -e 's,^//\(#define COREMU_CMC_SUPPORT\),\1,g' $coremuroot/incl/coremu-config.h
 else
   sed -i -e 's,^\(#define COREMU_CMC_SUPPORT\),//\1,g' $configfile
 fi

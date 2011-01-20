@@ -111,7 +111,6 @@ static void topology_bind_core()
     }
 
     fprintf(stderr, "core [%u] binds to %d\n", self->serial, index);
-
 }
 
 void coremu_init_sched_all()
@@ -172,7 +171,6 @@ int coremu_get_minprio()
 {
     return low_prio;
 }
-
 
 void coremu_init_sched_core()
 {
