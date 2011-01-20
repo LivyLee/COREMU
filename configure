@@ -79,18 +79,19 @@ if [ -d $coremuroot/obj ]; then
 fi
 mkdir -p $coremuroot/obj/qemu
 
-echo "QEMUSRC := ${qemusrc}" > coremu.mk
-echo "TARGET := ${target}" >> coremu.mk
-echo "PREFIXDIR := ${prefix}" >> coremu.mk
+echo "PREFIXDIR := ${prefix}" > coremu.mk
+
 if [ $lockfree = "true" ]; then
   echo "LOCKFREE := true" >> coremu.mk
 fi
 
+coremuconfig=$coremuroot/incl/coremu-config.h
+
 # enable or disable corss modifying code in incl/coremu/config.h
 if [[ $crosscode = "true" ]]; then
-  sed -i -e 's,^//\(#define COREMU_CMC_SUPPORT\),\1,g' $coremuroot/incl/coremu-config.h
+  sed -i -e 's,^//\(#define COREMU_CMC_SUPPORT\),\1,g' $coremuconfig
 else
-  sed -i -e 's,^\(#define COREMU_CMC_SUPPORT\),//\1,g' $coremuroot/incl/coremu-config.h
+  sed -i -e 's,^\(#define COREMU_CMC_SUPPORT\),//\1,g' $coremuconfig
 fi
 
 echo "COREMU_LIB = ${coremuroot}/obj/libcoremu.a" > ${qemusrc}/coremu.mk
