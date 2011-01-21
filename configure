@@ -85,6 +85,7 @@ echo "lockfree:  $lockfree"
 echo "usedebug:   $usedebug"
 echo "usecachesim: $usecachesim"
 echo "crosscode: $crosscode"
+echo "lockdetect: $lockdetect"
 
 cd $coremuroot
 if [ -d $coremuroot/obj ]; then
