@@ -46,18 +46,7 @@
 # define COREMU_THREAD
 #endif
 
-/* Enable lock free queue */
-//#define COREMU_LOCKFREE
-
-#define COREMU_DEBUG_MODE                /* The debug mode for coremu */
-//#define COREMU_CACHESIM_MODE             /* Cache simulation mode */
-
-/* enable lazy invalidate tb */
-//#define COREMU_CMC_SUPPORT
-//#define COREMU_FLUSH_TLB               /* enable broadcast flush tlb request */
-
-//#define COREMU_PROFILE_MODE              /* enable profiling for COREMU */
-//#define COREMU_RETRY_PROFILE           /* enable profiling the conflict retry number */
+#include "coremu-feature.h"
 
 #endif /* _CM_CONFIG_H */
 
