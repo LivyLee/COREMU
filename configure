@@ -85,14 +85,18 @@ if [ $lockfree = "true" ]; then
   echo "LOCKFREE := true" >> coremu.mk
 fi
 
-coremuconfig=$coremuroot/incl/coremu-config.h
+coremufeature=$coremuroot/incl/coremu-feature.h
+# clear feature file
+echo > $coremufeature
 
-# enable or disable corss modifying code in incl/coremu/config.h
-if [[ $crosscode = "true" ]]; then
-  sed -i -e 's,^//\(#define COREMU_CMC_SUPPORT\),\1,g' $coremuconfig
-else
-  sed -i -e 's,^\(#define COREMU_CMC_SUPPORT\),//\1,g' $coremuconfig
-fi
+# enable or disable features macro in coremu config file
+config_feature() {
+  if [[ $1 == "true" ]]; then
+    echo "#define $2" >> $coremufeature
+  fi
+}
+
+config_feature ${crosscode} COREMU_CMC_SUPPORT
 
 echo "COREMU_LIB = ${coremuroot}/obj/libcoremu.a" > ${qemusrc}/coremu.mk
 
