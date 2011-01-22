@@ -18,6 +18,7 @@ EOF
 lockfree="false"
 crosscode="false"
 hwloc="false"
+enable_replay="false"
 # parse options
 for opt do
   optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
@@ -31,6 +32,8 @@ for opt do
     --cross-mod-code) crosscode="true"
     ;;
     --enable-hwloc) hwloc="true"
+    ;;
+    --enable-replay) enable_replay="true"
     ;;
     --target=*)
     if [ -z $target ]; then
@@ -76,6 +79,7 @@ echo "qemusrc:   $qemusrc"
 echo "lockfree:  $lockfree"
 echo "crosscode: $crosscode"
 echo "hwloc:     $hwloc"
+echo "replay: $enable_replay"
 
 cd $coremuroot
 if [ -d $coremuroot/obj ]; then
@@ -102,6 +106,7 @@ config_feature() {
 
 config_feature ${crosscode} COREMU_CMC_SUPPORT
 config_feature ${hwloc} ENABLE_HWLOC
+config_feature ${enable_replay} CONFIG_REPLAY
 
 echo "COREMU_LIB = ${coremuroot}/obj/libcoremu.a" > ${qemusrc}/coremu.mk
 
