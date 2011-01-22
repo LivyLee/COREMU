@@ -34,7 +34,12 @@
 #include <sys/resource.h>
 #include <sched.h>
 
-#include "coremu-types.h"
+/* CORE scheduling type */
+typedef enum CMSchedEvent {
+    CM_EVENT_HALTED,
+    CM_EVENT_PAUSE,
+    CM_EVENT_CNT,
+} CMSchedEvent;
 
 #define CM_ENABLE_BIND_CORE
 

@@ -31,6 +31,7 @@
 
 #include <signal.h>
 #include <stdbool.h>
+#include "coremu-config.h"
 #include "utils.h"
 #include "coremu-init.h"
 #include "coremu-hw.h"

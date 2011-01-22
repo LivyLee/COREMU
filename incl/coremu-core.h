@@ -29,12 +29,13 @@
 
 #define COREMU_HLT_TICK   100     /* virtual core sleeps 1 second if HLT executed */
 
-#include "coremu-types.h"
+typedef struct CMCore CMCore;
 
 /* Init a core in COREMU. Basically, coremu core contains
  * a emulator specific data opaque. */
 void coremu_core_init(int id, void *opaque);
 
+typedef void *(thr_start_routine)(void *);
 /* Run all cores with THR_FN as the start function.
  * The thread function will be passed the opaque object when calling
  * coremu_core_init. */

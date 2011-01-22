@@ -27,12 +27,38 @@
 #ifndef _CORE_H
 #define _CORE_H
 
+#include "queue.h"
 #include "coremu-core.h"
 #include "coremu-hw.h"
 
+typedef pid_t tid_t;
+
+/* State of COREMU CORE */
+typedef enum CMCoreState {
+    CM_STATE_RUN,            /* NOT halt */
+    CM_STATE_HALT,           /* Halted state (e.g. execute HLT insn) */
+    CM_STATE_PAUSE,
+} CMCoreState;
+
+/* processor type */
+struct CMCore {
+    uint32_t serial;         /* number start from 0 */
+    pthread_t thread;        /* ID of the core */
+    tid_t tid;               /* kernel process id */
+    queue_t *intr_queue;     /* interrupt queue for the core */
+
+    /* adaptive signal control */
+    uint64_t time_stamp;      /* recode the time of intr pending */
+    int64_t intr_thresh_hold; /* the thresh hold for intr sending */
+    uint8_t sig_pending;      /* if has signal not receive */
+
+    void *opaque;            /* CPUState of QEMU */
+    CMCoreState state;       /* state of the CORE */
+};
+
 extern int cm_smp_cpus;
 extern CMCore *cm_cores;
-extern COREMU_THREAD CMCore *cm_core_self;
+extern __thread CMCore *cm_core_self;
 
 /* Return the specified core object. */
 static inline CMCore *coremu_get_core(int coreid)

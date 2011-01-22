@@ -34,7 +34,7 @@
 #include "coremu-atomic.h"
 
 static volatile int ioreq_exit = 0; /* flag to exit the ioreq wait */
-static hw_thr_t hw_thrid;
+static pthread_t hw_thrid;
 static void register_hw_thr(void);
 
 /*  === common tools === */
@@ -48,20 +48,19 @@ void coremu_signal_hw_thr(int signo)
     pthread_kill(hw_thrid, signo);
 }
 
-hw_thr_t coremu_get_hw_id()
+pthread_t coremu_get_hw_id(void)
 {
     return hw_thrid;
 }
 
 int coremu_hw_thr_p()
 {
-    return ((hw_thr_t) pthread_self()
-            == hw_thrid);
+    return ((pthread_t) pthread_self() == hw_thrid);
 }
 
 void coremu_assert_hw_thr(const char *msg)
 {
-    hw_thr_t cur = (hw_thr_t) pthread_self();
+    pthread_t cur = (pthread_t) pthread_self();
 
     if (hw_thrid != cur) {
         if (msg != NULL)
@@ -72,7 +71,7 @@ void coremu_assert_hw_thr(const char *msg)
 
 void coremu_assert_not_hw_thr(const char *msg)
 {
-    hw_thr_t cur = (hw_thr_t) pthread_self();
+    pthread_t cur = (pthread_t) pthread_self();
 
     if (hw_thrid == cur) {
         if (msg != NULL)
@@ -101,5 +100,5 @@ void coremu_dec_ioreq_exit()
 
 static void register_hw_thr()
 {
-    hw_thrid = (hw_thr_t) pthread_self();
+    hw_thrid = (pthread_t) pthread_self();
 }

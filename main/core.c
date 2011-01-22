@@ -32,6 +32,7 @@
 
 #define _GNU_SOURCE          /* for some GNU specific interfaces */
 
+#include "coremu-config.h"
 #include "utils.h"
 #include "coremu-hw.h"
 #include "coremu-timer.h"
@@ -39,7 +40,6 @@
 #include "coremu-intr.h"
 #include "coremu-malloc.h"
 #include "core.h"
-#include "queue.h"
 
 /* pause condition */
 pthread_cond_t pause_cond = COREMU_COND_INITIALIZER;
@@ -161,6 +161,7 @@ int coremu_init_done_p()
     return init_done;
 }
 
+extern pthread_t coremu_get_hw_id(void);
 void coremu_assert_core_thr()
 {
     if (pthread_self() == coremu_get_hw_id()) {

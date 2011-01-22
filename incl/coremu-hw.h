@@ -28,11 +28,8 @@
 #ifndef _COREMU_HW_H
 #define _COREMU_HW_H
 
-#include "coremu-types.h"
-
 void coremu_init_hw(int smp_cpus);
 void coremu_signal_hw_thr(int signo);
-hw_thr_t coremu_get_hw_id(void);
 int coremu_hw_thr_p(void);
 void coremu_assert_hw_thr(const char *msg);
 void coremu_assert_not_hw_thr(const char *msg);
