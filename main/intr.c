@@ -27,7 +27,6 @@
  */
 
 #include <signal.h>
-#include <stdbool.h>
 #include "coremu-config.h"
 #include "coremu-thread.h"
 
