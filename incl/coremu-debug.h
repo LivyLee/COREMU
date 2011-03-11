@@ -29,17 +29,21 @@
 #define _CM_DEBUG_H
 
 #include <stdio.h>
+#include <assert.h>
+
+#define SRCFMT "%s:%d: %s: "
+#define SRCINFO __FILE__, __LINE__, __FUNCTION__
 
 #if defined(DEBUG_COREMU)
-# define coremu_debug(fmt, args...) fprintf(stderr, "[COREMU] %s(line %d), %s " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
+# define coremu_debug(fmt, args...) fprintf(stderr, "[COREMU] " SRCFMT fmt "\n", SRCINFO, ##args)
 #else
 # define coremu_debug(fmt, args...)
 #endif
 
 #if defined(VERBOSE_COREMU)
-# define coremu_print(fmt, args...) fprintf(stderr, "%s(line %d), %s: " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
-# define coremu_out(fmt, args...) printf("%s(line %d), %s: " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
-# define coremu_fprint(stream, fmt, args...) fprintf(stream, "%s(line %d), %s: " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args)
+# define coremu_print(fmt, args...) fprintf(stderr, SRCFMT fmt "\n", SRCINFO, ##args)
+# define coremu_out(fmt, args...) printf(SRCFMT fmt "\n", SRCINFO, ##args)
+# define coremu_fprint(stream, fmt, args...) fprintf(stream, SRCFMT fmt "\n", SRCINFO, ##args)
 #else  /* null .. */
 # define coremu_print(fmt, args...)
 # define coremu_out(fmt, args...)
@@ -49,7 +53,7 @@
 #if !defined(NDEBUG)
 # define coremu_assert(exp, fmt, args...) { \
       if(! (exp)) { \
-          fprintf(stderr, "%s(line %d), %s: " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args); \
+          fprintf(stderr, SRCFMT fmt "\n", SRCINFO, ##args); \
       } \
       assert((exp)); }
 #else
