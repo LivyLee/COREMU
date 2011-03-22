@@ -137,12 +137,24 @@ void coremu_receive_intr()
     }
 }
 
+/* Sync this with cm-replay.h */
+enum {
+    CM_RUNMODE_NORMAL, /* Not being recorded or replayed, this is default */
+    CM_RUNMODE_RECORD,
+    CM_RUNMODE_REPLAY,
+};
+int coremu_run_mode;
+
 /* Send an interrupt and notify the accept core
  * Here we use apdaptive signal delay mechanism
  * But this mechanism seems to be wonderful when number of emulated
  * cores is more than 128 (test enviroment R900) */
 void coremu_send_intr(void *e, int coreid)
 {
+    /* We don't need to send interrupt in replay mode since the CPU knows when
+     * to handle interrupt. */
+    if (coremu_run_mode == CM_RUNMODE_REPLAY)
+        return;
     coremu_assert(e, "interrupt argument is NULL");
     CMCore *core = coremu_get_core(coreid);
 

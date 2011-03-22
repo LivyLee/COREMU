@@ -26,6 +26,9 @@
 #ifndef _COREMU_INTR_H
 #define _COREMU_INTR_H
 
+/* This will be set to be the same as cm_run_mode */
+extern int coremu_run_mode;
+
 /* Send interrupt to the core. */
 void coremu_send_intr(void *e, int coreid);
 
@@ -35,7 +38,7 @@ void coremu_register_event_handler(event_handler_t fn);
 /* Handle all the pending interrupt. */
 void coremu_receive_intr(void);
 
-/* event notifer will be called in coremu_cpu_signal_handler */
+/* event notifer will be called in coremu_core_signal_handler */
 typedef void (*event_notifier_t)(void);
 void coremu_register_event_notifier(event_notifier_t fn);
 

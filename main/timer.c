@@ -44,8 +44,10 @@
 #define handle_error_en(en, msg)   \
     do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
+extern int coremu_run_mode;
 int coremu_timer_create(int signo, timer_t *host_timer_ptr)
 {
+    assert(coremu_run_mode != 2); /* This shouldn't be called in replay mode. */
     /* create alarm timer using 'timer_create' */
     struct sigevent ev;
     memset(&ev, 0, sizeof(ev));
