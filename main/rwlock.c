@@ -1,5 +1,6 @@
 #include "coremu-atomic.h"
 #include "rwlock.h"
+#include <assert.h>
 
 /* For various reader-writer lock algorithms, refer to
  * http://www.cs.rochester.edu/research/synchronization/pseudocode/rw.html
@@ -31,6 +32,8 @@ void tbb_start_write(tbb_rwlock_t *l) {
         if (atomic_compare_exchangew((uint16_t *)l, tmp, TBB_WRITER) == tmp)
             return;
     }
+    /* Since readers are optimistic, it's possible we get non 0 here. */
+    /*assert((*(uint16_t *)l & ~(TBB_WPENDING | TBB_WRITER)) == 0);*/
 }
 
 void tbb_end_write(tbb_rwlock_t *l) {
@@ -45,6 +48,7 @@ void tbb_end_write(tbb_rwlock_t *l) {
      *
      * By clearing both the pending and writer bit, all the waiting reader and
      * writer have same chance to acquire the lock. */
+    /*assert((*(uint16_t *)l & ~(TBB_WPENDING | TBB_WRITER)) == 0);*/
     atomic_andw((uint16_t *)l, ~(TBB_WPENDING | TBB_WRITER));
 }
 
@@ -53,7 +57,7 @@ void tbb_start_read(tbb_rwlock_t *l) {
     while (1) {
         /* If there's no writer or pending writer */
         if (! (l->counter & (TBB_WPENDING | TBB_WRITER))) {
-            lval = atomic_xadd((uint16_t *)l, TBB_RINC);
+            lval = atomic_xaddw((uint16_t *)l, TBB_RINC);
             /* If no writer cuts in before we xadd, we can enter CS since writers
              * will see a non zero reader count and wait */
             if (! (lval & (TBB_WPENDING | TBB_WRITER)))
@@ -64,8 +68,10 @@ void tbb_start_read(tbb_rwlock_t *l) {
             atomic_addw((uint16_t *)l, -TBB_RINC);
         }
     }
+    assert((*(uint16_t *)l & TBB_WRITER) == 0);
 }
 
 void tbb_end_read(tbb_rwlock_t *l) {
+    assert((*(uint16_t *)l & TBB_WRITER) == 0);
     atomic_addw((uint16_t *)l, -TBB_RINC);
 }
