@@ -57,6 +57,8 @@ void coremu_wait_pause(CMCore *core);
 
 void coremu_wait_all_cores_pause(void);
 
+void coremu_wait_all_cores_exit(void);
+
 /* Wait on a specfic core until it exits... */
 int coremu_wait_tid(CMCore *coreid, void **val_ptr);
 

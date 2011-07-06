@@ -27,6 +27,9 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#define DEBUG_COREMU
+#define VERBOSE_COREMU
+
 #define _GNU_SOURCE          /* for some GNU specific interfaces */
 
 #include "coremu-config.h"
@@ -229,6 +232,14 @@ void coremu_wait_all_cores_pause(void)
     for (i = 0; i < cm_smp_cpus; i++) {
         coremu_wait_pause(&cm_cores[i]);
     }
+}
+
+void coremu_wait_all_cores_exit(void)
+{
+    CMCore *cur;
+
+    for (cur = cm_cores; cur != cm_cores + cm_smp_cpus; cur++)
+        pthread_join(cur->thread, NULL);
 }
 
 void coremu_restart_all_cores()

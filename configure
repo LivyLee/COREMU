@@ -120,3 +120,4 @@ ${qemusrc}/configure --prefix=${prefix} \
     --extra-cflags="-I${coremuroot}/incl -g" \
     --target-list="${target}" \
     --disable-werror \
+    --enable-debug

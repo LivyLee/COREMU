@@ -68,10 +68,10 @@ void tbb_start_read(tbb_rwlock_t *l) {
             atomic_addw((uint16_t *)l, -TBB_RINC);
         }
     }
-    assert((*(uint16_t *)l & TBB_WRITER) == 0);
+    /*assert((*(uint16_t *)l & TBB_WRITER) == 0);*/
 }
 
 void tbb_end_read(tbb_rwlock_t *l) {
-    assert((*(uint16_t *)l & TBB_WRITER) == 0);
+    /*assert((*(uint16_t *)l & TBB_WRITER) == 0);*/
     atomic_addw((uint16_t *)l, -TBB_RINC);
 }
