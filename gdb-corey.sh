@@ -5,9 +5,9 @@ send_user "(usage) gdb-corey path2qemu path2img"
 
 set imgdir "/home/alex/coremu/mit-corey/obj"
 set hda "$imgdir/boot/bochs.img"
-set hdaqcow "$imgdir/boot/play-bochs.qcow2"
+set hdaqcow "$imgdir/boot/bochs.img.gdb"
 set hdb "$imgdir/fs/fs.fat"
-set hdbqcow "$imgdir/fs/play-fs.qcow2"
+set hdbqcow "$imgdir/fs/fs.fat.gdb"
 spawn sudo qemu-img create -f qcow2 -b $hda $hdaqcow
 spawn sudo qemu-img create -f qcow2 -b $hdb $hdbqcow
 send_user "image for replay created"
@@ -37,7 +37,7 @@ send "set args \
     -net none \
 	-nographic \
     -k en-us \
-	-smp 2 \
+	-smp 1 \
 	-hda $hdaqcow \
 	-hdb $hdbqcow \
     -runmode $runmode \

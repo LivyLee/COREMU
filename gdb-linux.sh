@@ -5,7 +5,7 @@ send_user "(usage) gdb-corey path2qemu path2img"
 
 set imgdir "/home/alex/linux-img/"
 set hda "$imgdir/arch.img"
-set hdaqcow "$imgdir/arch.qcow2"
+set hdaqcow "$imgdir/arch.img.gdb"
 spawn sudo qemu-img create -f qcow2 -b $hda $hdaqcow
 send_user "image for replay created"
 
@@ -34,7 +34,7 @@ send "set args \
     -net none \
 	-nographic \
     -k en-us \
-	-smp 1 \
+	-smp 2 \
 	-hda $hdaqcow \
     -runmode $runmode \
     -bios bin/share/qemu/seabios.bin \

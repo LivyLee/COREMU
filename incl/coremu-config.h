@@ -48,8 +48,22 @@
 
 #include "coremu-feature.h"
 
+/* Flags for replay */
 #define CONFIG_REPLAY
+//#define SEP_TLB
+//#define TLBFLUSH_AS_INTERRUPT
+#define IGNORE_MEMACC_IN_TLBFILL
+
 #define DEBUG_REPLAY
+#ifdef DEBUG_REPLAY
+#  define DEBUG_MEM_ACCESS
+#  define ASSERT_REPLAY_PC
+#  define ASSERT_REPLAY_TLBFILL
+#  define ASSERT_REPLAY_TBFLUSH
+#  define ASSERT_REPLAY_GENCODE
+#  define ASSERT_REPLAY_TB_PHYS_HASH
+#  define ASSERT_REPLAY_TB_JMP_HASH
+#endif
 
 #endif /* _CM_CONFIG_H */
 
