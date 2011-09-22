@@ -50,19 +50,28 @@
 
 /* Flags for replay */
 #define CONFIG_REPLAY
+/* SEP_TLB and IGNORE_MEMACC_IN_TLBFILL can't be specified at the same time.
+ * Because is we IGNORE_MEMACC_IN_TLBFILL, then before calling the function
+ * which actually sets the tlb in tlb fill, it will set cm_is_in_tc to 0, which
+ * will then only modifie tlb2. */
 //#define SEP_TLB
 //#define TLBFLUSH_AS_INTERRUPT
 #define IGNORE_MEMACC_IN_TLBFILL
 
 #define DEBUG_REPLAY
 #ifdef DEBUG_REPLAY
+#  define ADD_TLBFLUSH
 #  define DEBUG_MEM_ACCESS
+//#  define CHECK_MEMOP_CNT
 #  define ASSERT_REPLAY_PC
-#  define ASSERT_REPLAY_TLBFILL
-#  define ASSERT_REPLAY_TBFLUSH
+//#  define ASSERT_REPLAY_TLBFILL
+//#  define ASSERT_REPLAY_TBFLUSH
+//#  define ASSERT_REPLAY_TLBFLUSH
+//#  define ASSERT_REPLAY_TLBFLUSH
 #  define ASSERT_REPLAY_GENCODE
-#  define ASSERT_REPLAY_TB_PHYS_HASH
-#  define ASSERT_REPLAY_TB_JMP_HASH
+//#  define ASSERT_REPLAY_TB_PHYS_HASH
+//#  define ASSERT_REPLAY_TB_JMP_HASH
+//#  define ASSERT_REPLAY_TB_JMP_CACHE_MISS_CNT
 #endif
 
 #endif /* _CM_CONFIG_H */
