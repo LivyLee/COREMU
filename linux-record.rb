@@ -2,5 +2,7 @@
 
 require 'coremu'
 
-COREMU.run_linux 'record', 2
+COREMU.check_args
+
+COREMU.run_linux 'record', ARGV[1]
 

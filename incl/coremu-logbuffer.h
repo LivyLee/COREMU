@@ -12,18 +12,22 @@
  *  Yufei Chen      <chenyufei@fudan.edu.cn>
  *  Ran Liu         <naruilone@gmail.com>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ *  License: LGPL version 2.
+ */
+
+/*
+ * Each threads write to its own buffer, when the buffer is full, write the
+ * pointer and other information to a pipe. The writing thread reads from the
+ * pipe the buffer information and then write the buffer content out.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * Using pipe make it easy to wake up the writing thread when there's work need
+ * to be done.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, see <http://www.gnu.org/licenses/>.
+ * Currently only one log writing thread is used. If this is not enough (writing
+ * to the pipe will block), we can increase the priority of this thread or
+ * create log thread for each running vCPU. (1-to-1 mapping between vCPU and log
+ * thread is much easier than multiplexing log writing in multiple threads and
+ * avoiding threads writing to the same file at the same time.)
  */
 
 #ifndef _COREMU_LOGBUFFER_H
@@ -33,56 +37,41 @@
 #include <string.h>
 #include <stdio.h>
 #include <pthread.h>
-#include "coremu-config.h"
-#include "queue.h"
 
-typedef void (*coremu_log_func)(FILE *, void *);
+void coremu_logbuffer_init(void);
 
-typedef struct buflst buflst;
-
-/* Each record in the buffer should be of equal size. */
+/* I want to make the next_entry function inline, so have to expose the
+ * structrue of CMLogBuf here. */
 typedef struct {
-    char *buf;
-    char *cur;      /* Current position in the buffer. */
-    char *end;      /* end - buf = bufsize */
-
-    int size;
-    int ele_size;   /* Size of each element. */
-    coremu_log_func func;
-
-    queue_t *queue;  /* Holding all the allocated buffer. */
-    bool thread_running; /* Whether log thread is running. */
-    pthread_t thread;
-
+    void *buf;
+    void *cur;      /* Current position in the buffer. */
+    void *end;      /* end - buf = bufsize */
     FILE *file;
-} CMLogbuf;
+} CMLogBuf;
 
-CMLogbuf *coremu_logbuf_new(int n, int ele_size, coremu_log_func func, FILE *file);
-/* Must call this function to write all the content in buffer out. */
-void coremu_logbuf_free(CMLogbuf *buf);
+/* Create and initialize new CMLogBuf instance. */
+CMLogBuf *coremu_logbuf_new(int size, FILE *file);
+/* Free the memory held by the logbuf and itself. */
+void coremu_logbuf_free(CMLogBuf *logbuf);
+/* Give the buffer to the writing thread.*/
+void coremu_logbuf_flush(CMLogBuf *logbuf);
 
-/* Flush the buffer content in a thread. */
-void coremu_logbuf_flush(CMLogbuf *buf);
+/* Wait the write thread to finish */
+void coremu_logbuf_wait_thread_exit(CMLogBuf *buf);
 
-void coremu_logbuf_wait_flush(CMLogbuf *buf);
-
-/* Assmue that the buffer contains space for at least size space.
- * Use this macro to directly write the content into the buffer, so we can avoid
- * calling memcpy to copy the content. */
-#define COREMU_LOGBUF_LOG(buf, pos, command) \
-    do { \
-        char *pos = buf->cur; \
-        { command; }; \
-        buf->cur += buf->ele_size; \
-        if (buf->cur + buf->ele_size > buf->end) \
-            coremu_logbuf_flush(buf); \
-    } while (0)
-
-static inline void coremu_logbuf_log(CMLogbuf *buf, void *cont)
+/* Get the next log entry. */
+static inline void *coremu_logbuf_next_entry(CMLogBuf **logbuf_p, int size)
 {
-    COREMU_LOGBUF_LOG(buf, pos, {
-        memcpy(pos, cont, buf->ele_size);
-    });
+    CMLogBuf *logbuf = *logbuf_p;
+    if (logbuf->cur + size > logbuf->end) {
+        coremu_logbuf_flush(logbuf);
+        // Need to create new logbuffer. And USE THAT BUFFER!
+        logbuf = coremu_logbuf_new(logbuf->end - logbuf->buf, logbuf->file);
+        *logbuf_p = logbuf;
+    }
+    void *ent = logbuf->cur;
+    logbuf->cur += size;
+    return ent;
 }
 
 #endif /* _COREMU_LOGBUFFER_H */

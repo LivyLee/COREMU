@@ -9,124 +9,86 @@
  *  Yufei Chen      <chenyufei@fudan.edu.cn>
  *  Ran Liu         <naruilone@gmail.com>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, see <http://www.gnu.org/licenses/>.
+ *  License: LGPL version 2.
  */
 
 #include <unistd.h>
 #include <time.h>
+#include <stdlib.h>
+
 #include "coremu-malloc.h"
 #include "coremu-logbuffer.h"
+
 /*#define DEBUG_COREMU*/
 #include "coremu-debug.h"
 
-CMLogbuf *coremu_logbuf_new(int n, int ele_size, coremu_log_func func, FILE *file)
+static pthread_t log_thread_id;
+static int logpipe[2];
+
+static void print_logbuf(CMLogBuf *logbuf, const char *msg)
 {
-    CMLogbuf *logbuf = coremu_mallocz(sizeof(*logbuf));
-
-    logbuf->ele_size = ele_size;
-    logbuf->size = n * ele_size;
-
-    logbuf->buf = logbuf->cur = coremu_mallocz(logbuf->size);
-    logbuf->end = logbuf->size + logbuf->buf;
-    logbuf->func = func;
-
-    logbuf->queue = new_queue();
-    logbuf->file = file;
-
-    return logbuf;
+    coremu_debug("%s buf: %p, end: %p, file: %p", msg,
+                 logbuf->buf, logbuf->end, logbuf->file);
 }
 
-void coremu_logbuf_free(CMLogbuf *buf)
+static void *coremu_record_thread(void *arg)
 {
-    char *pos;
-    struct timespec tv = {0, 300000000}; /* 0.3 second */
-
-    /* Wait for the thread to stop. Can't use pthread_join since thread is
-     * detached. */
-    while (buf->thread_running)
-        nanosleep(&tv, NULL);
-
-    /* First output the remaining record. */
-    for (pos = buf->buf; pos != buf->cur; pos += buf->ele_size)
-        buf->func(buf->file, pos);
-
-    /* Free the memory. */
-    coremu_free(buf->buf);
-    destroy_queue(buf->queue);
-    coremu_free(buf);
-}
-
-typedef struct {
-    char *buf;
-    char *end;
-} BufBlock;
-
-/* Call log function for each element in the buffer, then free the buffer. */
-static void *log_thr(void *logbuf)
-{
-    char *pos;
-    char *end;
-    BufBlock *block;
-    struct timespec tv = {0, 100000000}; /* 0.1 second */
-    CMLogbuf *buf = (CMLogbuf *)logbuf;
-    int try = 0;
-
-    coremu_debug("spawn new thread writing log buffer");
-
-    /* Wait for 1 second for new log record. */
-    while (try < 10) {
-        while (dequeue(buf->queue, (data_type *)&block)) {
-            pos = block->buf;
-            end = block->end;
-            for (; pos != end; pos += buf->ele_size)
-                buf->func(buf->file, pos);
-            coremu_free(block->buf);
-            coremu_free(block);
-            try = 0;
-        }
-        try++;
-        coremu_debug("sleep to wait log");
-        nanosleep(&tv, NULL);
+    coremu_debug("logging thread started");
+    CMLogBuf *logbuf;
+    while (read(logpipe[0], &logbuf, sizeof(logbuf)) > 0){
+        print_logbuf(logbuf, "writing out log");
+        /* Note we write till the current end of the log buffer. So we can
+           handle buffers that are not full. */
+        fwrite(logbuf->buf, logbuf->cur - logbuf->buf, 1, logbuf->file);
+        coremu_logbuf_free(logbuf);
     }
-    /* No record now, exit. */
-    coremu_debug("log write thread exit");
-    buf->thread_running = false;
     return NULL;
 }
 
-void coremu_logbuf_flush(CMLogbuf *buf)
+void coremu_logbuffer_init(void)
 {
-    coremu_debug("called");
-
-    /* Add old buffer to buffer list. It doesn't need to be full. */
-    BufBlock *block = coremu_mallocz(sizeof(*block));
-    block->buf = buf->buf;
-    block->end = buf->cur;
-    enqueue(buf->queue, (data_type) block);
-
-    buf->buf = buf->cur = coremu_mallocz(buf->size);
-    buf->end = buf->buf + buf->size;
-
-    if (!buf->thread_running) {
-        buf->thread_running = true;
-        pthread_create(&(buf->thread), NULL, log_thr, buf);
-        pthread_detach(buf->thread);
+    if (pipe(logpipe) != 0) {
+        perror("log buffer pipe creation failed");
+        exit(1);
+    }
+    if (pthread_create(&log_thread_id, NULL, coremu_record_thread, NULL) != 0) {
+        perror("log writing thread creation failed");
+        exit(1);
     }
 }
 
-void coremu_logbuf_wait_flush(CMLogbuf *buf)
+CMLogBuf *coremu_logbuf_new(int size, FILE *file)
 {
-    while (buf->thread_running)
-        usleep(1000);
+    CMLogBuf *logbuf = coremu_mallocz(sizeof(*logbuf));
+
+    logbuf->buf = coremu_mallocz(size);
+    logbuf->cur = logbuf->buf;
+    logbuf->end = size + logbuf->buf;
+    logbuf->file = file;
+
+    print_logbuf(logbuf, "creating new log buffer");
+    return logbuf;
 }
+
+void coremu_logbuf_free(CMLogBuf *logbuf)
+{
+    free(logbuf->buf);
+    free(logbuf);
+}
+
+void coremu_logbuf_flush(CMLogBuf *logbuf)
+{
+    print_logbuf(logbuf, "flushing buf");
+    if (write(logpipe[1], &logbuf, sizeof(logbuf)) == -1) {
+        perror("log buffer flush error");
+        exit(1);
+    }
+}
+
+void coremu_logbuf_wait_thread_exit(CMLogBuf *buf)
+{
+    // Close the write end, then wait the log thread to exit.
+    close(logpipe[1]);
+    pthread_join(log_thread_id, NULL);
+}
+

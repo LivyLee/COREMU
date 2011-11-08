@@ -19,6 +19,13 @@ class COREMU
     :memsize => 1024,
   }
 
+  def self.check_args
+    if ARGV.length != 1
+      puts "Need to specify number of cores"
+      exit 1
+    end
+  end
+
   def self.create_qcow2_disk(hd, mode)
     system "sudo qemu-img create -f qcow2 -b #{hd} #{hd}.#{mode}"
     puts "created image #{hd}.#{mode}"

@@ -2,5 +2,7 @@
 
 require 'coremu'
 
-COREMU.run_linux 'replay', 2
+COREMU.check_args
+
+COREMU.run_linux 'replay', ARGV[1]
 
