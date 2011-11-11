@@ -4,5 +4,5 @@ require 'coremu'
 
 COREMU.check_args
 
-COREMU.run_linux 'record', ARGV[1]
+COREMU.run_linux 'record', ARGV[0]
 

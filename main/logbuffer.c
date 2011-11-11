@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #include "coremu-malloc.h"
 #include "coremu-logbuffer.h"
@@ -52,7 +54,7 @@ void coremu_logbuffer_init(void)
         exit(1);
     }
     if (pthread_create(&log_thread_id, NULL, coremu_record_thread, NULL) != 0) {
-        perror("log writing thread creation failed");
+        perror("log thread creation failed");
         exit(1);
     }
 }
@@ -90,5 +92,10 @@ void coremu_logbuf_wait_thread_exit(CMLogBuf *buf)
     // Close the write end, then wait the log thread to exit.
     close(logpipe[1]);
     pthread_join(log_thread_id, NULL);
+
+    if (setpriority(PRIO_PROCESS, log_thread_id, -15) != 0) {
+        perror("set log thread high priority.");
+        exit(1);
+    }
 }
 

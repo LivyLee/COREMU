@@ -48,22 +48,26 @@
 
 #include "coremu-feature.h"
 
+/* Test the performance of using function to access memory. */
+//#define MEMOP_AS_FUNC
+
 /* Flags for replay */
 #define CONFIG_REPLAY
 /* SEP_TLB and IGNORE_MEMACC_IN_TLBFILL can't be specified at the same time.
- * Because is we IGNORE_MEMACC_IN_TLBFILL, then before calling the function
+ * Because if we IGNORE_MEMACC_IN_TLBFILL, then before calling the function
  * which actually sets the tlb in tlb fill, it will set cm_is_in_tc to 0, which
- * will then only modifie tlb2. */
-//#define SEP_TLB
-//#define TLBFLUSH_AS_INTERRUPT
-#define IGNORE_MEMACC_IN_TLBFILL
+ * will then only modify tlb2. */
+#ifdef CONFIG_REPLAY
+//#  define SEP_TLB
+//#  define TLBFLUSH_AS_INTERRUPT
+#  define IGNORE_MEMACC_IN_TLBFILL
 
-#define DEBUG_REPLAY
+//#define DEBUG_REPLAY
 #ifdef DEBUG_REPLAY
 #  define ADD_TLBFLUSH
 #  define DEBUG_MEM_ACCESS
 //#  define CHECK_MEMOP_CNT
-#  define ASSERT_REPLAY_PC
+//#  define ASSERT_REPLAY_PC
 //#  define ASSERT_REPLAY_TLBFILL
 //#  define ASSERT_REPLAY_TBFLUSH
 //#  define ASSERT_REPLAY_TLBFLUSH
@@ -73,6 +77,11 @@
 //#  define ASSERT_REPLAY_TB_JMP_HASH
 //#  define ASSERT_REPLAY_TB_JMP_CACHE_MISS_CNT
 #endif
+
+/* Use txt log. */
+//#define REPLAY_TXT_LOG
+
+#endif /* CONFIG_REPLAY */
 
 #endif /* _CM_CONFIG_H */
 

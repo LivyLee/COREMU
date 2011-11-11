@@ -38,6 +38,7 @@
 static inline void *oom_check(void *ptr)
 {
     if (ptr == NULL) {
+        fprintf(stderr, "OUT OF MEMORY!");
         abort();
     }
     return ptr;

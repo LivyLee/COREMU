@@ -15,7 +15,8 @@ class COREMU
 
   @@linux_dir = "~/linux-img"
   @@linux = {
-    :hda => "#{@@linux_dir}/arch.img",
+    :hda => "#{@@linux_dir}/debian-bench.img",
+    #:hda => "#{@@linux_dir}/arch.img",
     :memsize => 1024,
   }
 
