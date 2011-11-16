@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [[ $# != 1 ]]; then
     echo "Usage: $0 <num of core>"
     exit 1
@@ -5,7 +7,8 @@ fi
 
 qemu=obj/qemu/x86_64-softmmu/qemu-system-x86_64
 #img=~/linux-img/arch.qcow2
-img=~/linux-img/debian-bench.qcow2
+#img=~/linux-img/debian-bench.qcow2
+img=~/linux-img/debian6.qcow2
 cores=$1
 
 memsize=1024
