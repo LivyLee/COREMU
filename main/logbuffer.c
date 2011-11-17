@@ -93,7 +93,7 @@ void coremu_logbuf_wait_thread_exit(CMLogBuf *buf)
     close(logpipe[1]);
     pthread_join(log_thread_id, NULL);
 
-    if (setpriority(PRIO_PROCESS, log_thread_id, -15) != 0) {
+    if (setpriority(PRIO_PROCESS, log_thread_id, -19) != 0) {
         perror("set log thread high priority.");
         exit(1);
     }
