@@ -26,9 +26,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include "coremu-malloc.h"
 #include "coremu-atomic.h"
+
+#define DEBUG_COREMU
+#include "coremu-debug.h"
 
 static inline void *oom_check(void *ptr)
 {
@@ -38,9 +43,19 @@ static inline void *oom_check(void *ptr)
     return ptr;
 }
 
+#define NTRY 3
+
 void *coremu_malloc(size_t size)
 {
-    return oom_check(malloc(size));
+    void *p = malloc(size);
+    int i;
+    for (i = 0; p == NULL && i < NTRY; i++) {
+        /* Wait sometime. Maybe the log thread are busy writing out logs. */
+        coremu_debug("wait and try malloc again.");
+        usleep(i + 1);
+        p = malloc(size);
+    }
+    return oom_check(p);
 }
 
 void *coremu_mallocz(size_t size)
