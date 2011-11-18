@@ -28,7 +28,8 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h>
+
+#include <sched.h>
 
 #include "coremu-malloc.h"
 #include "coremu-atomic.h"
@@ -54,7 +55,7 @@ void *coremu_malloc(size_t size)
     for (i = 0; p == NULL && i < NTRY; i++) {
         /* Wait sometime. Maybe the log thread are busy writing out logs. */
         coremu_debug("wait and try malloc again.");
-        pthread_yield();
+        sched_yield();
         p = malloc(size);
     }
     return oom_check(p);
