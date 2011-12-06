@@ -4,5 +4,5 @@ require 'coremu'
 
 COREMU.check_args
 
-COREMU.run_corey 'replay', ARGV[0]
+COREMU.run_corey 'normal', ARGV[0]
 

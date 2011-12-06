@@ -79,7 +79,11 @@
 #endif
 
 /* Use txt log. */
-//#define REPLAY_TXT_LOG
+#define REPLAY_TXT_LOG
+/* Use log buffer  */
+//#define REPLAY_LOGBUF
+
+//#define SLOW_HOST2RAMADDR
 
 #endif /* CONFIG_REPLAY */
 
