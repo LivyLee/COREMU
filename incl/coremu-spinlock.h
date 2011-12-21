@@ -29,17 +29,17 @@
 #define _COREMU_SPINLOCK_H
 
 typedef struct {
-    volatile int lock;
+    volatile char lock;
 } CMSpinLock;
 
 #define SPINLOCK_ATTR static __inline __attribute__((always_inline, no_instrument_function))
 
-SPINLOCK_ATTR int __testandset(CMSpinLock *p)
+SPINLOCK_ATTR char __testandset(CMSpinLock *p)
 {
-    int readval = 0;
+    char readval = 0;
 
     __asm__ __volatile__ (
-			"lock; cmpxchgl %2, %0"
+			"lock; cmpxchgb %b2, %0"
 			: "+m" (p->lock), "+a" (readval)
 			: "r" (1)
 			: "cc");
