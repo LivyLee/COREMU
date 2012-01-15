@@ -56,12 +56,11 @@
 
 #ifdef CONFIG_REPLAY
 //#  define TLBFLUSH_AS_INTERRUPT
-#  define IGNORE_MEMACC_IN_TLBFILL
 
 //#define DEBUG_REPLAY
 #ifdef DEBUG_REPLAY
 //#  define ADD_TLBFLUSH
-#  define DEBUG_MEM_ACCESS
+//#  define DEBUG_MEM_ACCESS
 //#  define CHECK_MEMOP_CNT
 #  define ASSERT_REPLAY_PC
 //#  define ASSERT_REPLAY_TLBFILL
@@ -74,8 +73,6 @@
 //#  define ASSERT_REPLAY_TB_JMP_CACHE_MISS_CNT
 #endif
 
-/* Use txt log. */
-#define REPLAY_TXT_LOG
 /* Use log buffer  */
 //#define REPLAY_LOGBUF
 
