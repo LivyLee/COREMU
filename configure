@@ -17,6 +17,7 @@ EOF
 
 lockfree="false"
 crosscode="false"
+hwloc="false"
 # parse options
 for opt do
   optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
@@ -28,6 +29,8 @@ for opt do
     --use-lockfree) lockfree="true"
     ;;
     --cross-mod-code) crosscode="true"
+    ;;
+    --enable-hwloc) hwloc="true"
     ;;
     --target=*)
     if [ -z $target ]; then
@@ -72,6 +75,7 @@ echo "prefix:    $prefix"
 echo "qemusrc:   $qemusrc"
 echo "lockfree:  $lockfree"
 echo "crosscode: $crosscode"
+echo "hwloc:     $hwloc"
 
 cd $coremuroot
 if [ -d $coremuroot/obj ]; then
@@ -97,6 +101,7 @@ config_feature() {
 }
 
 config_feature ${crosscode} COREMU_CMC_SUPPORT
+config_feature ${hwloc} ENABLE_HWLOC
 
 echo "COREMU_LIB = ${coremuroot}/obj/libcoremu.a" > ${qemusrc}/coremu.mk
 

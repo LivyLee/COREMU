@@ -16,11 +16,11 @@ include coremu.mk
 QEMUOBJ_DIR := obj/qemu
 
 CFLAGS    := -pthread -O2 -Wall -Wfatal-errors -g -Iincl -Imain
-LDFLAGS   := -pthread $(AIOLIB) -O2 -g -Wall -Wfatal-errors --warn-error -rdynamic $(pkg-config --libs topology)
+LDFLAGS   := -pthread $(AIOLIB) -O2 -g -Wall -Wfatal-errors --warn-error -rdynamic
 
 # libtopology support
-CFLAGS  += `pkg-config --cflags topology`
-LDFLAGS += `pkg-config --libs topology`
+#CFLAGS  += `pkg-config --cflags hwloc`
+#LDFLAGS += `pkg-config --libs hwloc`
 
 include_dirs := incl
 vpath %.h $(include_dirs)

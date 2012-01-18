@@ -29,32 +29,12 @@
 #ifndef _COREMU_SCHED_H
 #define _COREMU_SCHED_H
 
-/* system headers */
-#include <sys/time.h>
-#include <sys/resource.h>
-#include <sched.h>
-
 /* CORE scheduling type */
 typedef enum CMSchedEvent {
     CM_EVENT_HALTED,
     CM_EVENT_PAUSE,
     CM_EVENT_CNT,
 } CMSchedEvent;
-
-#define CM_ENABLE_BIND_CORE
-
-/* bind the vcpu to physical cpu */
-/*#define CM_BIND_SAME_CORE*/
-
-/* bind the near vcpus to the same physcal cpu */
-/*#define CM_BIND_SAME_CORE2*/
-
-/*#define CM_BIND_SOCKET*/
-
-/* halt method: nanosleep, sched_yield or hybrid */
-#define HALT_NANOSLEEP
-/*#define HALT_YIELD*/
-/*#define HALT_HYBRID*/
 
 /* scheduling states */
 #define STATE_CPU        0

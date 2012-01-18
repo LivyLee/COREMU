@@ -29,7 +29,12 @@
 /*#define DEBUG_CM_SCHED*/
 
 #define _GNU_SOURCE
+/* system headers */
+#include <sys/time.h>
+#include <sys/resource.h>
+#include <sched.h>
 
+#include "coremu-config.h"
 #include "utils.h"
 #include "core.h"
 #include "coremu-sched.h"
@@ -40,16 +45,6 @@ int min_prio, max_prio;
 int low_prio, avg_prio, high_prio;
 int host_cpu_avail = 0;
 
-topo_topology_t topology;
-struct topo_topology_info topoinfo;
-static unsigned int depth;
-static unsigned int cores;
-
-__thread unsigned long int halt_cnt = 0;
-#define HALT_THRESHHOLD     10
-#define HALT_SLEEP_MIN_TIME 10000   // 1000ns = 10us
-#define HALT_SLEEP_MAX_TIME 5000000 // 5000,000ns = 5ms this is the smallest quantum
-
 __thread unsigned long int pause_cnt = 0;
 #define PAUSE_THRESHOLD     100
 #define PAUSE_SLEEP_TIME    100000  // 100,000 ns = 100us
@@ -57,63 +52,66 @@ __thread unsigned long int pause_cnt = 0;
 static inline void sched_halted(void);
 static inline void sched_pause(void);
 static void display_thread_sched_attr(char *msg);
-static void topology_init(void);
-static void print_children(topo_topology_t topology, topo_obj_t obj, int depth);
 
-static void print_children(topo_topology_t topology, topo_obj_t obj, int depth)
+#ifdef ENABLE_HWLOC
+#include <hwloc.h>
+
+hwloc_topology_t topology;
+static unsigned int depth;
+static unsigned int cores;
+
+static void print_children(hwloc_topology_t topology, hwloc_obj_t obj, int depth);
+
+static void print_children(hwloc_topology_t topology, hwloc_obj_t obj, int depth)
 {
     char string[128];
     int i;
 
-    topo_obj_snprintf(string, sizeof(string), topology, obj, "#", 0);
+    hwloc_obj_snprintf(string, sizeof(string), topology, obj, "#", 0);
     printf("%*s%s\n", 2 * depth, "", string);
     for (i = 0; i < obj->arity; i++)
         print_children(topology, obj->children[i], depth + 1);
 }
 
-static void topology_init()
+static void hwloc_init()
 {
-    topo_topology_init(&topology);
-    topo_topology_load(topology);
+    hwloc_topology_init(&topology);
+    /* Performthe topology detection. */
+    hwloc_topology_load(topology);
 
-    topo_topology_get_info(topology, &topoinfo);
-    depth = topo_get_type_or_below_depth(topology, TOPO_OBJ_CORE);
-    cores = topo_get_depth_nbobjs(topology, depth);
+    depth = hwloc_topology_get_depth(topology);
+    cores = hwloc_get_nbobjs_by_depth(topology, depth);
 
-    /*
-     *fprintf(stderr,
-     *        "----------------- Dump toplogy[%ud] info -----------------\n",
-     *        cores);
-     *[> Dump the toplogy info <]
-     *print_children(topology, topo_get_system_obj(topology), 0);
-     *fprintf(stderr,
-     *        "----------------------------------------------------------\n");
-     */
+    fprintf(stderr, "----------------- Dump toplogy[%ud] info -----------------\n", cores);
+    /* Dump the toplogy info */
+    print_children(topology, hwloc_get_root_obj(topology), 0);
+    fprintf(stderr, "----------------------------------------------------------\n");
 }
 
-
-static void topology_bind_core()
+static void bind_core()
 {
-    topo_obj_t obj;
-    topo_cpuset_t cpuset;
+    hwloc_obj_t obj;
+    hwloc_cpuset_t cpuset;
     CMCore *self = coremu_get_core_self();
     int index;
 
     index = (self->serial % cores);
 
-    obj = topo_get_obj_by_depth(topology, depth, index);
+    obj = hwloc_get_obj_by_depth(topology, depth, index);
     cpuset = obj->cpuset;
-    topo_cpuset_singlify(&cpuset);
+    hwloc_cpuset_singlify(cpuset);
 
-    if (topo_set_cpubind(topology, &cpuset, TOPO_CPUBIND_THREAD)) {
-        char s[TOPO_CPUSET_STRING_LENGTH + 1];
-        topo_cpuset_snprintf(s, sizeof(s), &obj->cpuset);
-        printf("Couldn't bind to cpuset %s\n", s);
-        exit(-1);
+    /* Bind self. */
+    if (hwloc_set_cpubind(topology, cpuset, 0)) {
+        char *str;
+        hwloc_cpuset_asprintf(&str, obj->cpuset);
+        printf("Couldn't bind to cpuset %s\n", str);
+        free(str);
+    } else {
+        fprintf(stderr, "core [%u] binds to %d\n", self->serial, index);
     }
-
-    fprintf(stderr, "core [%u] binds to %d\n", self->serial, index);
 }
+#endif
 
 void coremu_init_sched_all()
 {
@@ -138,10 +136,11 @@ void coremu_init_sched_all()
     //assert(! sched_setscheduler(0, SCHED_RR, NULL));
     display_thread_sched_attr("MAIN thread scheduling settings:");
     coremu_thread_setpriority(PRIO_PROCESS, 0, high_prio);
-    topology_init();
 
     /* bind hardware thread to the fisrt core */
-    //topology_bind_hw();
+#ifdef ENABLE_HWLOC
+    hwloc_init();
+#endif
 }
 
 int coremu_get_hostcpu()
@@ -189,14 +188,12 @@ void coremu_init_sched_core()
     /* display the scheduling info */
     display_thread_sched_attr("CORE thread scheduler settings:");
 
-#ifdef CM_ENABLE_BIND_CORE
+#ifdef ENABLE_HWLOC
     /* bind thread to a specific core */
-    topology_bind_core();
+    bind_core();
 #endif
 
 }
-
-
 
 void coremu_cpu_sched(CMSchedEvent e)
 {
@@ -212,8 +209,8 @@ void coremu_cpu_sched(CMSchedEvent e)
     }
 }
 
-
 /* handle the halted event */
+#define HALT_SLEEP_MAX_TIME 5000000 // 5000,000ns = 5ms this is the smallest quantum
 static inline void sched_halted()
 {
     struct timespec halt_interval;
@@ -224,7 +221,6 @@ static inline void sched_halted()
     halt_interval.tv_nsec = HALT_SLEEP_MAX_TIME;
     nanosleep(&halt_interval, NULL);
     self->state = CM_STATE_RUN;
-
 }
 
 /* handle the pause event */
@@ -262,12 +258,12 @@ static void display_thread_sched_attr(char *msg)
 
     coremu_print("policy=%s, priority=%d",
              (policy == SCHED_FIFO) ?
-				 "SCHED_FIFO" :
+                 "SCHED_FIFO" :
                  (policy == SCHED_RR) ?
-				     "SCHED_RR" :
-					 (policy == SCHED_OTHER) ?
-						 "SCHED_OTHER" :
-						 "???", prio);
+                     "SCHED_RR" :
+                     (policy == SCHED_OTHER) ?
+                         "SCHED_OTHER" :
+                         "???", prio);
 
     coremu_print("-- thr[%lu] %s end --\n",
              (unsigned long int)coremu_gettid(), msg);
