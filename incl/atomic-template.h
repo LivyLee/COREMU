@@ -42,13 +42,15 @@ static __inline__ void coremu_glue(atomic_add, SUFFIX)(DATA_TYPE* addr,
 }
 
 /* swap the value VAL and *p.
+ * From Intel manual, "Locking protocol is automatically implementedd for the
+ * duration of the exchange operation.", so lock prefix is not needed.
  * Return the value swapped out from memory. */
 static inline DATA_TYPE coremu_glue(atomic_exchange, SUFFIX)(
         DATA_TYPE *p, DATA_TYPE val)
 {
     DATA_TYPE out;
     __asm __volatile(
-            "lock; xchg"coremu_str(SUFFIX)" %1,%2 \n\t"
+            "xchg"coremu_str(SUFFIX)" %1,%2 \n\t"
             : "=a" (out), "+m" (*p)
             : "a" (val)
             );

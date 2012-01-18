@@ -96,10 +96,28 @@ atomic_compare_exchange16b(uint64_t *memp,
 }
 #endif
 
+/* Test and set a bit */
+static inline char atomic_bitsetandtest(void *ptr, int x)
+{
+    char out;
+    __asm__ __volatile__("lock; bts %2,%1\n"
+                        "sbb %0,%0\n"
+                :"=r" (out), "=m" (*(volatile long long *)ptr)
+                :"Ir" (x)
+                :"memory");
+
+    return out;
+}
+
 /* Memory Barriers: x86-64 ONLY now */
 #define mb()    asm volatile("mfence":::"memory")
 #define rmb()   asm volatile("lfence":::"memory")
 #define wmb()   asm volatile("sfence" ::: "memory")
+/* Compile read-write barrier */
+#define barrier() asm volatile("": : :"memory")
+
+/* Pause instruction to prevent excess processor bus usage */
+#define cpu_relax() asm volatile("pause\n": : :"memory")
 
 #define LOCK_PREFIX "lock; "
 
