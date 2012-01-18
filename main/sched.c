@@ -35,6 +35,7 @@
 #include <sched.h>
 
 #include "coremu-config.h"
+#include "coremu-thread.h"
 #include "utils.h"
 #include "core.h"
 #include "coremu-sched.h"

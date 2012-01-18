@@ -32,6 +32,9 @@
 #define VERBOSE_COREMU
 #define TIMER_PERIODIC_SLEEP      /* sleep sometime instead of busy loop? */
 
+#include <string.h>
+#include <signal.h>
+
 #include "utils.h"
 #include "coremu-timer.h"
 #include "coremu-malloc.h"

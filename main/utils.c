@@ -26,6 +26,14 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdlib.h>
+#include <stdint.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <assert.h>
+/* Debugging support */
+#include <execinfo.h>
+
 #include "utils.h"
 
 /* serializing instruction stream using CPUID.
@@ -90,14 +98,6 @@ unsigned long read_host_tsc(void)
 int coremu_random(int min, int max)
 {
     return random() % (max - min) + min;
-}
-
-FILE *coremu_fopen(const char *filename, const char *mode)
-{
-    FILE *stream = fopen(filename, mode);
-    assert(stream != NULL);
-
-    return stream;
 }
 
 void coremu_serialize()

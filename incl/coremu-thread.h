@@ -31,6 +31,9 @@
 
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <signal.h>
+#include <stdio.h>
+#include <assert.h>
 #include <pthread.h>
 #include <stdbool.h>
 

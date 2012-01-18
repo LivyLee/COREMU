@@ -29,6 +29,10 @@
 #define VERBOSE_COREMU
 #define _GNU_SOURCE
 
+#include <signal.h>
+#include <assert.h>
+#include <stdio.h>
+
 #include "utils.h"
 #include "coremu-hw.h"
 #include "coremu-atomic.h"
