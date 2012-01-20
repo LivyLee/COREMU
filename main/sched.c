@@ -33,6 +33,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sched.h>
+#include <unistd.h>
 
 #include "coremu-config.h"
 #include "coremu-thread.h"
@@ -40,6 +41,7 @@
 #include "core.h"
 #include "coremu-sched.h"
 
+#define DEBUG_COREMU
 #include "coremu-debug.h"
 
 int min_prio, max_prio;
@@ -55,14 +57,14 @@ static inline void sched_pause(void);
 static void display_thread_sched_attr(char *msg);
 
 #ifdef ENABLE_HWLOC
+/* If enabled, bind threads using the least sockets possible. */
 #include <hwloc.h>
 
 hwloc_topology_t topology;
-static unsigned int depth;
-static unsigned int cores;
+static unsigned int core_depth;
+static unsigned int ncores;
 
-static void print_children(hwloc_topology_t topology, hwloc_obj_t obj, int depth);
-
+#ifdef VERBOSE_QEMU
 static void print_children(hwloc_topology_t topology, hwloc_obj_t obj, int depth)
 {
     char string[128];
@@ -73,6 +75,7 @@ static void print_children(hwloc_topology_t topology, hwloc_obj_t obj, int depth
     for (i = 0; i < obj->arity; i++)
         print_children(topology, obj->children[i], depth + 1);
 }
+#endif
 
 static void hwloc_init()
 {
@@ -80,13 +83,17 @@ static void hwloc_init()
     /* Performthe topology detection. */
     hwloc_topology_load(topology);
 
-    depth = hwloc_topology_get_depth(topology);
-    cores = hwloc_get_nbobjs_by_depth(topology, depth);
+    core_depth = hwloc_get_type_or_below_depth(topology, HWLOC_OBJ_CORE);
+    coremu_debug("depth: %d", core_depth);
+    ncores = hwloc_get_nbobjs_by_depth(topology, core_depth);
+    coremu_debug("cores: %d", ncores);
 
+#ifdef VERBOSE_QEMU
     fprintf(stderr, "----------------- Dump toplogy[%ud] info -----------------\n", cores);
     /* Dump the toplogy info */
     print_children(topology, hwloc_get_root_obj(topology), 0);
     fprintf(stderr, "----------------------------------------------------------\n");
+#endif
 }
 
 static void bind_core()
@@ -96,21 +103,31 @@ static void bind_core()
     CMCore *self = coremu_get_core_self();
     int index;
 
-    index = (self->serial % cores);
+    index = (self->serial % ncores);
 
-    obj = hwloc_get_obj_by_depth(topology, depth, index);
-    cpuset = obj->cpuset;
-    hwloc_cpuset_singlify(cpuset);
+    /* Refer to hwloc api example the 5th example for more details. */
+    obj = hwloc_get_obj_by_depth(topology, core_depth, index);
+    if (obj) {
+        cpuset = hwloc_cpuset_dup(obj->cpuset);
+        /* Get only one logical processor (in case the core is
+           SMT/hyperthreaded). */
+        hwloc_cpuset_singlify(cpuset);
 
-    /* Bind self. */
-    if (hwloc_set_cpubind(topology, cpuset, 0)) {
-        char *str;
-        hwloc_cpuset_asprintf(&str, obj->cpuset);
-        printf("Couldn't bind to cpuset %s\n", str);
-        free(str);
-    } else {
-        fprintf(stderr, "core [%u] binds to %d\n", self->serial, index);
+        /* Bind self. */
+        if (hwloc_set_cpubind(topology, cpuset, HWLOC_CPUBIND_THREAD)) {
+            char *str;
+            hwloc_cpuset_asprintf(&str, obj->cpuset);
+            printf("Couldn't bind to cpuset %s\n", str);
+            free(str);
+        } else {
+#ifdef VERBOSE_QEMU
+            fprintf(stderr, "core [%u] binds to %d\n", self->serial, index);
+#endif
+        }
+
+        hwloc_cpuset_free(cpuset);
     }
+
 }
 #endif
 
