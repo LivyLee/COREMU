@@ -34,6 +34,7 @@
 
 #include <string.h>
 #include <signal.h>
+#include <assert.h>
 
 #include "utils.h"
 #include "coremu-timer.h"
