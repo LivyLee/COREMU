@@ -27,9 +27,6 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#define DEBUG_COREMU
-#define VERBOSE_COREMU
-
 #define _GNU_SOURCE          /* for some GNU specific interfaces */
 
 #include "coremu-config.h"
@@ -42,7 +39,7 @@
 #include "coremu-malloc.h"
 #include "core.h"
 
-#define DEBUG_COREMU
+/*#define DEBUG_COREMU*/
 /*#define VERBOSE_COREMU*/
 #include "coremu-debug.h"
 

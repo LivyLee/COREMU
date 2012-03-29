@@ -1,0 +1,9 @@
+scripts/*
+bios/*
+*.sh
+*.rb
+*log
+*.out
+*.bak
+coremu.mk
+obj

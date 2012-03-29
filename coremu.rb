@@ -3,8 +3,9 @@ require 'expect'
 $expect_verbose = true
 
 class COREMU
-  @@qemu = 'obj/qemu/x86_64-softmmu/qemu-system-x86_64'
-  #@@qemu = '../cm-qemu/x86_64-softmmu/qemu-system-x86_64'
+  @@qemu_x86 = 'obj/qemu/x86_64-softmmu/qemu-system-x86_64'
+  @@qemu_arm = 'obj/qemu/arm-softmmu/qemu-system-arm'
+  #@@qemu_x86 = '../cm-qemu/x86_64-softmmu/qemu-system-x86_64'
 
   @@corey_dir = "~/related-coremu/mit-corey/obj"
   @@corey = {
@@ -33,7 +34,7 @@ class COREMU
   end
 
   def self.cmd(conf, mode, core)
-    cmd = "sudo #{@@qemu} " \
+    cmd = "sudo #{@@qemu_x86} " \
       "-m #{conf[:memsize]} " \
       "-k en-us " \
       "-serial mon:/dev/tty " \
@@ -87,6 +88,35 @@ class COREMU
   def self.run_linux(mode, core)
     setup_linux mode
     exec linux_cmd(mode, core)
+  end
+
+  @@arm_dir = "~/linux-img/arm"
+  @@arm = {
+    :kernel => "#{@@arm_dir}/linux-2.6.28/arch/arm/boot/zImage",
+    :initrd => "#{@@arm_dir}/initrd.gz",
+    :memsize => 128,
+  }
+
+  def self.arm_cmd(mode, core)
+    cmd = "sudo #{@@qemu_arm} " \
+      "-M realview-pbx-a9 " \
+      "-m #{@@arm[:memsize]} " \
+      "-k en-us " \
+      "-serial mon:/dev/tty " \
+      "-nographic " \
+      "-net none " \
+      "-smp #{core} " \
+      "-kernel #{@@arm[:kernel]} " \
+      "-initrd #{@@arm[:initrd]} " \
+      "-initrd #{@@arm[:initrd]} " \
+      "-runmode #{mode} " \
+      "-d int,in_asm,out_asm,op"
+    puts cmd
+    cmd
+  end
+
+  def self.run_arm(mode, core)
+    exec arm_cmd(mode, core)
   end
 end
 
