@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 
@@ -41,7 +42,12 @@ static void *coremu_record_thread(void *arg)
         print_logbuf(logbuf, "writing out log");
         /* Note we write till the current end of the log buffer. So we can
            handle buffers that are not full. */
-        fwrite(logbuf->buf, logbuf->cur - logbuf->buf, 1, logbuf->file);
+        /*fwrite(logbuf->buf, logbuf->cur - logbuf->buf, 1, logbuf->file);*/
+        /* We should use unbuffered write instead of fwrite. Otherwise, we are
+         * going to do copy twice. */
+        if (write(logbuf->fileno, logbuf->buf, logbuf->cur - logbuf->buf) == -1) {
+            perror("flushing logbuffer error");
+        }
         coremu_logbuf_free(logbuf);
     }
     return NULL;
@@ -67,6 +73,7 @@ CMLogBuf *coremu_logbuf_new(int size, FILE *file)
     logbuf->cur = logbuf->buf;
     logbuf->end = size + logbuf->buf;
     logbuf->file = file;
+    logbuf->fileno = fileno(file);
 
     print_logbuf(logbuf, "creating new log buffer");
     return logbuf;

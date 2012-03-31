@@ -47,6 +47,7 @@ typedef struct {
     void *cur;      /* Current position in the buffer. */
     void *end;      /* end - buf = bufsize */
     FILE *file;
+    int  fileno;
 } CMLogBuf;
 
 /* Create and initialize new CMLogBuf instance. */
