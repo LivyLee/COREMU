@@ -110,7 +110,7 @@ class COREMU
       "-initrd #{@@arm[:initrd]} " \
       "-initrd #{@@arm[:initrd]} " \
       "-runmode #{mode} " \
-      "-d int,in_asm,out_asm,op"
+      #"-d int,in_asm,out_asm,exec"
     puts cmd
     cmd
   end
