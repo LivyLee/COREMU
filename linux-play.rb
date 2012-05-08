@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-require 'coremu'
+require './coremu'
 
 COREMU.check_args
 
-COREMU.run_linux 'replay', ARGV[0]
+COREMU.run_linux ARGV[0], :replay
 

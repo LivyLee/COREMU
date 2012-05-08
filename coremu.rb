@@ -4,11 +4,11 @@ $expect_verbose = true
 
 class COREMU
   @@qemu_x86 = 'obj/qemu/x86_64-softmmu/qemu-system-x86_64'
-  @@qemu_arm = 'obj/qemu/arm-softmmu/qemu-system-arm'
   #@@qemu_x86 = '../cm-qemu/x86_64-softmmu/qemu-system-x86_64'
 
   @@corey_dir = "~/related-coremu/mit-corey/obj"
   @@corey = {
+    :executable => @@qemu_x86,
     :hda => "#{@@corey_dir}/boot/bochs.img",
     :hdb => "#{@@corey_dir}/fs/fs.fat",
     :memsize => 1024,
@@ -16,6 +16,7 @@ class COREMU
 
   @@linux_dir = "~/linux-img"
   @@linux = {
+    :executable => @@qemu_x86,
     #:hda => "#{@@linux_dir}/debian-bench.img",
     :hda => "#{@@linux_dir}/debian6.img",
     :memsize => 1024,
@@ -33,22 +34,26 @@ class COREMU
     puts "created image #{hd}.#{mode}"
   end
 
-  def self.cmd(conf, mode, core)
-    cmd = "sudo #{@@qemu_x86} " \
-      "-m #{conf[:memsize]} " \
+  def self.gen_cmd(conf, mode, core)
+    cmd = "sudo #{conf[:executable]} " \
       "-k en-us " \
       "-serial mon:/dev/tty " \
       "-nographic " \
-      "-bios bin/share/qemu/seabios.bin " \
       "-net none " \
       "-smp #{core} " \
-      "-hda #{conf[:hda]}.#{mode} " \
-      "-runmode #{mode} " \
-      #"-d in_asm " \
+      #"-d in_asm "
+    cmd << "-m #{conf[:memsize]} " if conf.has_key? :memsize
+    cmd << "-hda #{conf[:hda]}.#{mode} " if conf.has_key? :hda
+    cmd << "-hdb #{conf[:hdb]}.#{mode} " if conf.has_key? :hdb
+    cmd << "-kernel #{conf[:kernel]} " if conf.has_key? :kernel
+    cmd << "-initrd #{conf[:initrd]} " if conf.has_key? :initrd
+    cmd << "-runmode #{mode} " if mode != :normal
+    cmd << conf[:addition] if conf.has_key? :addition
+    cmd
   end
 
-  def self.corey_cmd(mode, core)
-    c = cmd(@@corey, mode, core) + "-hdb #{@@corey[:hdb]}.#{mode}"
+  def self.corey_cmd(core, mode = :normal)
+    c = gen_cmd(@@corey, mode, core)
     puts c
     c
   end
@@ -58,12 +63,12 @@ class COREMU
     create_qcow2_disk @@corey[:hdb], mode
   end
 
-  def self.run_corey(mode, core)
+  def self.run_corey(core, mode = :normal)
     setup_corey mode
     exec corey_cmd(mode, core)
   end
 
-  def self.run_corey_autoexit(mode, core)
+  def self.run_corey_autoexit(core, mode)
     setup_corey mode
     puts corey_cmd(mode, core)
     PTY.spawn(corey_cmd(mode, core)) do |reader, writer, pid|
@@ -75,8 +80,8 @@ class COREMU
     end
   end
 
-  def self.linux_cmd(mode, core)
-    c = cmd(@@linux, mode, core)
+  def self.linux_cmd(core, mode = :normal)
+    c = gen_cmd(@@linux, mode, core) + "-bios bin/share/qemu/seabios.bin "
     puts c
     c
   end
@@ -85,38 +90,29 @@ class COREMU
     create_qcow2_disk @@linux[:hda], mode
   end
 
-  def self.run_linux(mode, core)
+  def self.run_linux(core, mode = :normal)
     setup_linux mode
-    exec linux_cmd(mode, core)
+    exec linux_cmd(core, mode)
   end
 
+  @@qemu_arm = 'obj/qemu/arm-softmmu/qemu-system-arm'
   @@arm_dir = "~/linux-img/arm"
   @@arm = {
+    :executable => @@qemu_arm,
     :kernel => "#{@@arm_dir}/linux-2.6.28/arch/arm/boot/zImage",
     :initrd => "#{@@arm_dir}/initrd.gz",
     :memsize => 128,
+    :additional_option => "-M realview-pbx-a9 -net none ",
   }
 
-  def self.arm_cmd(mode, core)
-    cmd = "sudo #{@@qemu_arm} " \
-      "-M realview-pbx-a9 " \
-      "-m #{@@arm[:memsize]} " \
-      "-k en-us " \
-      "-serial mon:/dev/tty " \
-      "-nographic " \
-      "-net none " \
-      "-smp #{core} " \
-      "-kernel #{@@arm[:kernel]} " \
-      "-initrd #{@@arm[:initrd]} " \
-      "-initrd #{@@arm[:initrd]} " \
-      "-runmode #{mode} " \
-      #"-d int,in_asm,out_asm,exec"
+  def self.arm_cmd(core, mode = :normal)
+    cmd = gen_cmd(@@arm, mode, core)
     puts cmd
     cmd
   end
 
-  def self.run_arm(mode, core)
-    exec arm_cmd(mode, core)
+  def self.run_arm(core, mode = :normal)
+    exec arm_cmd(core, mode)
   end
 end
 
