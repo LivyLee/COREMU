@@ -28,32 +28,46 @@
 #ifndef _COREMU_SPINLOCK_H
 #define _COREMU_SPINLOCK_H
 
-typedef struct {
-    volatile char lock;
-} CMSpinLock;
+typedef unsigned char CMSpinLock;
 
 #define SPINLOCK_ATTR static __inline __attribute__((always_inline, no_instrument_function))
 
-SPINLOCK_ATTR char __testandset(CMSpinLock *p)
-{
-    char readval = 0;
+/* Compile read-write barrier */
+#define barrier() asm volatile("": : :"memory")
 
-    __asm__ __volatile__ (
-			"lock; cmpxchgb %b2, %0"
-			: "+m" (p->lock), "+a" (readval)
-			: "r" (1)
-			: "cc");
-    return readval;
+/* Pause instruction to prevent excess processor bus usage */
+#define cpu_relax() asm volatile("pause\n": : :"memory")
+
+static inline unsigned short xchg_8(void *ptr, unsigned char x)
+{
+    __asm__ __volatile__("xchgb %0,%1"
+                :"=r" (x)
+                :"m" (*(volatile unsigned char *)ptr), "0" (x)
+                :"memory");
+
+    return x;
 }
+
+#define BUSY 1
 
 SPINLOCK_ATTR void coremu_spin_lock(CMSpinLock *lock)
 {
-    while (__testandset(lock));
+    while (1) {
+        if (!xchg_8(lock, BUSY)) return;
+
+        while (*lock) cpu_relax();
+    }
 }
 
-SPINLOCK_ATTR void coremu_spin_unlock(CMSpinLock *s)
+SPINLOCK_ATTR void coremu_spin_unlock(CMSpinLock *lock)
 {
-    s->lock = 0;
+    barrier();
+    *lock = 0;
+}
+
+SPINLOCK_ATTR int coremu_spin_trylock(CMSpinLock *lock)
+{
+    return xchg_8(lock, BUSY);
 }
 
 #define CM_SPIN_LOCK_INIT(l) coremu_spin_unlock(l)
