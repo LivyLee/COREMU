@@ -65,13 +65,13 @@ class COREMU
 
   def self.run_corey(core, mode = :normal)
     setup_corey mode
-    exec corey_cmd(mode, core)
+    exec corey_cmd(core, mode)
   end
 
   def self.run_corey_autoexit(core, mode)
     setup_corey mode
-    puts corey_cmd(mode, core)
-    PTY.spawn(corey_cmd(mode, core)) do |reader, writer, pid|
+    puts corey_cmd(core, mode)
+    PTY.spawn(corey_cmd(core, mode)) do |reader, writer, pid|
       reader.expect(/thread_halt: no more threads/) do |r|
         writer.printf("?\C-ax")
       end
@@ -86,7 +86,7 @@ class COREMU
     c
   end
 
-  def self.setup_linux(mode)
+  def self.setup_linux(mode = :normal)
     create_qcow2_disk @@linux[:hda], mode
   end
 
