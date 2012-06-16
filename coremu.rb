@@ -2,7 +2,7 @@ require 'pty'
 require 'expect'
 $expect_verbose = true
 
-class COREMU
+module COREMU
   @@qemu_x86 = 'obj/qemu/x86_64-softmmu/qemu-system-x86_64'
   #@@qemu_x86 = '../cm-qemu/x86_64-softmmu/qemu-system-x86_64'
 
@@ -32,6 +32,19 @@ class COREMU
   def self.create_qcow2_disk(hd, mode)
     system "sudo qemu-img create -f qcow2 -b #{hd} #{hd}.#{mode}"
     puts "created image #{hd}.#{mode}"
+  end
+
+  def self.process_log(ncore, mode)
+    if mode == :record
+      puts "Deleting previous log"
+      File.delete 'replay-log/memop', 'replay-log/memop-index', *Dir['replay-log/*-[0-9]']
+    elsif mode == :replay
+      puts "Processing log"
+      unless File.exist?('replay-log/memop')
+	ncore.to_i.times { |i| system "./reorder-memop #{i}" }
+	system "./merge-memop #{ncore}"
+      end
+    end
   end
 
   def self.gen_cmd(conf, mode, core)
@@ -64,6 +77,7 @@ class COREMU
   end
 
   def self.run_corey(core, mode = :normal)
+    process_log core, mode
     setup_corey mode
     exec corey_cmd(core, mode)
   end
@@ -91,6 +105,7 @@ class COREMU
   end
 
   def self.run_linux(core, mode = :normal)
+    process_log core, mode
     setup_linux mode
     exec linux_cmd(core, mode)
   end
