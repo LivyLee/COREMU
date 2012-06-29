@@ -37,12 +37,16 @@ module COREMU
   def self.process_log(ncore, mode)
     if mode == :record
       puts "Deleting previous log"
-      File.delete 'replay-log/memop', 'replay-log/memop-index', *Dir['replay-log/*-[0-9]']
+      begin
+        File.delete 'replay-log/memop', 'replay-log/memop-index', *Dir['replay-log/*-[0-9]']
+      rescue
+        # do nothing on delete error
+      end
     elsif mode == :replay
       puts "Processing log"
       unless File.exist?('replay-log/memop')
-	ncore.to_i.times { |i| system "./reorder-memop #{i}" }
-	system "./merge-memop #{ncore}"
+        ncore.to_i.times { |i| system "./reorder-memop #{i}" }
+        system "./merge-memop #{ncore}"
       end
     end
   end
