@@ -65,5 +65,7 @@
 # define coremu_foutput(stream, fmt, args...) fprintf(stream, "%s(line %d), %s: " fmt "\n", __FILE__, __LINE__, __FUNCTION__, ##args);
 #endif
 
+void coremu_backtrace(void);
+
 #endif /* _DEBUG_H */
 
