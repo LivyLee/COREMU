@@ -54,9 +54,11 @@
 /* Flags for replay */
 #define CONFIG_REPLAY
 
+#ifdef CONFIG_REPLAY
+
+#define USE_RWLOCK
 #define CONFIG_MEM_ORDER
 
-#ifdef CONFIG_REPLAY
 //#  define TLBFLUSH_AS_INTERRUPT
 
 //#define DEBUG_REPLAY
