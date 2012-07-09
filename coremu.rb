@@ -38,7 +38,8 @@ module COREMU
     if mode == :record
       puts "Deleting previous log"
       begin
-        File.delete 'replay-log/memop', 'replay-log/memop-index', *Dir['replay-log/*-[0-9]']
+	File.delete *Dir['replay-log/*[0-9]']
+        File.delete 'replay-log/memop', 'replay-log/memop-index'
       rescue
         # do nothing on delete error
       end
