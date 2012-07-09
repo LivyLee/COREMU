@@ -169,6 +169,7 @@ int coremu_init_done_p()
 }
 
 extern pthread_t coremu_get_hw_id(void);
+#ifdef DEBUG_COREMU
 void coremu_assert_core_thr()
 {
     if (pthread_self() == coremu_get_hw_id()) {
@@ -177,6 +178,9 @@ void coremu_assert_core_thr()
     }
     return;
 }
+#else
+void coremu_assert_core_thr() {}
+#endif
 
 void coremu_wait_init(void)
 {

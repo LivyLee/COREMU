@@ -62,6 +62,7 @@ int coremu_hw_thr_p()
     return ((pthread_t) pthread_self() == hw_thrid);
 }
 
+#ifdef DEBUG_COREMU
 void coremu_assert_hw_thr(const char *msg)
 {
     pthread_t cur = (pthread_t) pthread_self();
@@ -83,6 +84,10 @@ void coremu_assert_not_hw_thr(const char *msg)
         assert(0);
     }
 }
+#else
+void coremu_assert_hw_thr(const char *msg) {}
+void coremu_assert_not_hw_thr(const char *msg) {}
+#endif
 
 /* === ioreq_exit flag manipulation === */
 int coremu_ioreq_exit_p()
