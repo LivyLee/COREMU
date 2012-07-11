@@ -56,12 +56,12 @@
 
 #ifdef CONFIG_REPLAY
 
-#define USE_RWLOCK
+//#define USE_RWLOCK
 #define CONFIG_MEM_ORDER
 
 // Don't acquire lock when recording memory order.
 // Used to test the performance impact of atomic instructions.
-#define NO_LOCK
+//#define NO_LOCK
 
 //#  define TLBFLUSH_AS_INTERRUPT
 
