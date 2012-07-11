@@ -144,7 +144,9 @@ void coremu_receive_intr()
  * cores is more than 128 (test enviroment R900) */
 void coremu_send_intr(void *e, int coreid)
 {
+#ifdef DEBUG_COREMU
     coremu_assert(e, "interrupt argument is NULL");
+#endif
     CMCore *core = coremu_get_core(coreid);
 
     if (!coremu_init_done_p())
