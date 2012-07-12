@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby1.9.1
-
-require './coremu'
-COREMU.benchmark_linux /COREMU HOST TIME: (\d+\.\d+) seconds/, :record
-
