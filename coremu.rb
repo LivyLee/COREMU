@@ -115,18 +115,23 @@ class COREMU
     exec arm_cmd(core, mode)
   end
 
-  def self.run_benchmark(cmd, exp_str, logfile)
+  BENCHMARK_NTIMES = 3
+  def self.run_benchmark(cmd, logfile)
     PTY.spawn(cmd) do |reader, writer, pid|
-      reader.expect(exp_str) do |r|
+      BENCHMARK_NTIMES.times do
+	reader.expect(/COREMU HOST TIME: (\d+\.\d+) seconds/) do |r|
+	  logfile.puts(r[1])
+	  puts r[1] if logfile != STDIN
+	  logfile.flush
+	end
+      end
+      reader.expect(/COREMU EVAL DONE/) do |r|
 	writer.printf("?\C-ax")
-	logfile.puts(r[1])
-	puts r[1] if logfile != STDIN
       end
     end
   end
 
-  BENCHMARK_NTIMES = 3
-  def self.benchmark_linux(exp_str, mode = :normal)
+  def self.benchmark_linux(mode = :normal)
     if ARGV.length != 2
       puts "Usage: #{$0} #cores logfile"
       exit 1
@@ -140,10 +145,7 @@ class COREMU
 
     logfile = (logpath == "stdin" ? STDIN : File.open(logpath, 'w'))
 
-    BENCHMARK_NTIMES.times do
-      run_benchmark(cmd, exp_str, logfile)
-      sleep 1
-    end
+    run_benchmark(cmd, logfile)
 
     logfile.close if logfile != "stdin"
   end
