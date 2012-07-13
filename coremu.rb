@@ -118,6 +118,8 @@ class COREMU
   BENCHMARK_NTIMES = 3
   def self.run_benchmark(cmd, logfile)
     PTY.spawn(cmd) do |reader, writer, pid|
+      # Ignore result for the 1st run
+      reader.expect(/COREMU HOST TIME: (\d+\.\d+) seconds/) {|r| puts r[1]}
       BENCHMARK_NTIMES.times do
 	reader.expect(/COREMU HOST TIME: (\d+\.\d+) seconds/) do |r|
 	  logfile.puts(r[1])
