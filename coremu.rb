@@ -158,6 +158,7 @@ module COREMU
       puts "Usage: #{$0} #cores logfile"
       exit 1
     end
+    @@linux[:memsize] = 2048
 
     ncore = ARGV[0]
     logpath = ARGV[1]
