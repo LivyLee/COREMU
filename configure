@@ -118,6 +118,6 @@ ${qemusrc}/configure --prefix=${prefix} \
     --disable-kvm \
     --disable-docs \
     --disable-sdl \
-    --extra-cflags="-I${coremuroot}/incl -g" \
+    --extra-cflags="-I${coremuroot}/incl -g -DNDEBUG" \
     --target-list="${target}" \
     --disable-werror \
