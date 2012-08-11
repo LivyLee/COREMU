@@ -111,6 +111,6 @@ cd $coremuroot/obj/qemu
 ${qemusrc}/configure --prefix=${prefix} \
     --disable-kvm \
     --disable-docs \
-    --extra-cflags="-I${coremuroot}/incl -g -DNODEBUG" \
+    --extra-cflags="-I${coremuroot}/incl -g -DNDEBUG" \
     --target-list="${target}" \
     --disable-werror \
