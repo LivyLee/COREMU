@@ -145,7 +145,7 @@ class COREMU
     setup_linux mode
     cmd = linux_cmd(ncore, mode)
 
-    logfile = (logpath == "stdin" ? STDIN : File.open(logpath, 'w'))
+    logfile = (logpath == "stdin" ? STDIN : File.open("#{logpath}-#{ncore}", 'w'))
 
     run_benchmark(cmd, logfile)
 
