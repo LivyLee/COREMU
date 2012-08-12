@@ -122,7 +122,7 @@ module COREMU
     :kernel => "#{@@arm_dir}/linux-2.6.28/arch/arm/boot/zImage",
     :initrd => "#{@@arm_dir}/initrd.gz",
     :memsize => 128,
-    :additional_option => "-M realview-pbx-a9 -net none ",
+    :addition => "-M realview-pbx-a9 -net none ",
   }
 
   def self.arm_cmd(core, mode = :normal)
@@ -132,6 +132,7 @@ module COREMU
   end
 
   def self.run_arm(core, mode = :normal)
+    process_log core, mode
     exec arm_cmd(core, mode)
   end
 
