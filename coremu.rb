@@ -181,14 +181,14 @@ module COREMU
 
   def self.benchmark_linux(mode = :normal)
     if ARGV.length != 3
-      puts "Usage: #{$0} #cores logdir filename"
+      puts "Usage: #{$0} logdir filename #cores "
       exit 1
     end
     @@linux[:memsize] = 2048
 
-    ncore = ARGV[0]
-    logdir = ARGV[1]
-    filename = ARGV[2]
+    logdir = ARGV[0]
+    filename = ARGV[1]
+    ncore = ARGV[2]
 
     setup_linux mode
     cmd =o linux_cmd(ncore, mode)
