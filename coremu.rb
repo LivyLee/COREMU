@@ -191,7 +191,7 @@ module COREMU
     ncore = ARGV[2]
 
     setup_linux mode
-    cmd =o linux_cmd(ncore, mode)
+    cmd = linux_cmd(ncore, mode)
 
     process_log ncore, mode
     run_benchmark(cmd, logdir, filename, ncore)
