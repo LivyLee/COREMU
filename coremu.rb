@@ -171,7 +171,6 @@ class COREMU
     setup_linux mode
     cmd = linux_cmd(ncore, mode)
 
-    process_log ncore, mode
     run_benchmark(cmd, logdir, filename, ncore)
   end
 end
