@@ -116,41 +116,63 @@ class COREMU
   end
 
   BENCHMARK_NTIMES = 3
-  def self.run_benchmark(cmd, logfile)
+  NBENCHMARK = 1
+  def self.parse_one_application(reader, writer, ncore, logdir, filename)
+    logfile = nil
+    ben = nil
+    reader.expect(/COREMU BENCHMARK: (\w+) starts$/) do |r|
+      ben = r[1]
+      dir = File.join(logdir, ben)
+      FileUtils.mkdir_p dir
+      path = File.join dir, "#{filename}-#{ncore}"
+      logfile = open(path, "w")
+    end
+    # Ignore result for the 1st run
+    reader.expect(/COREMU HOST TIME: (\d+\.\d+) seconds/) do |r|
+      puts r[1]
+    end
+    resarr = []
+    BENCHMARK_NTIMES.times do
+      reader.expect(/COREMU HOST TIME: (\d+\.\d+) seconds/) do |r|
+        logfile.puts(r[1])
+        puts r[1] if logfile != STDIN
+        logfile.flush
+        resarr << r[1]
+      end
+    end
+    logfile.close
+    puts "#{ben} #{ncore}"
+    puts resarr
+  end
+
+  def self.run_benchmark(cmd, logdir, filename, ncore)
+    #PTY.spawn("./script-test.sh") do |reader, writer, pid|
     PTY.spawn(cmd) do |reader, writer, pid|
-      # Ignore result for the 1st run
-      reader.expect(/COREMU HOST TIME: (\d+\.\d+) seconds/) {|r| puts r[1]}
-      BENCHMARK_NTIMES.times do
-	reader.expect(/COREMU HOST TIME: (\d+\.\d+) seconds/) do |r|
-	  logfile.puts(r[1])
-	  puts r[1] if logfile != STDIN
-	  logfile.flush
-	end
+      NBENCHMARK.times do
+        parse_one_application(reader, writer, ncore, logdir, filename)
       end
       reader.expect(/COREMU EVAL DONE/) do |r|
-	writer.printf("?\C-ax")
+        writer.printf("?\C-ax")
       end
     end
   end
 
   def self.benchmark_linux(mode = :normal)
-    if ARGV.length != 2
-      puts "Usage: #{$0} #cores logfile"
+    if ARGV.length != 3
+      puts "Usage: #{$0} #cores logdir filename"
       exit 1
     end
     @@linux[:memsize] = 2048
 
     ncore = ARGV[0]
-    logpath = ARGV[1]
+    logdir = ARGV[1]
+    filename = ARGV[2]
 
     setup_linux mode
     cmd = linux_cmd(ncore, mode)
 
-    logfile = (logpath == "stdin" ? STDIN : File.open("#{logpath}-#{ncore}", 'w'))
-
-    run_benchmark(cmd, logfile)
-
-    logfile.close if logfile != "stdin"
+    process_log ncore, mode
+    run_benchmark(cmd, logdir, filename, ncore)
   end
 end
 
