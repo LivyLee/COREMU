@@ -126,8 +126,7 @@ static inline void coremu_sigmask_res(sigset_t *set, const char *errmsg)
 /* Thread scheduling */
 static inline int coremu_thread_setpriority(int which, int who, int prio)
 {
-    int err = setpriority(which, who, prio);
-    assert(!err);
+    assert(!setpriority(which, who, prio));
     return true;
 }
 
