@@ -1,5 +1,6 @@
 require 'pty'
 require 'expect'
+require 'fileutils'
 $expect_verbose = true
 
 class COREMU
