@@ -56,6 +56,9 @@
 
 #ifdef CONFIG_REPLAY
 
+// detect if DMA memory region is being accessed by other CPU.
+#define DMA_DETECTOR
+
 //#define USE_RWLOCK
 #define CONFIG_MEM_ORDER
 
