@@ -175,6 +175,7 @@ module COREMU
       end
       reader.expect(/COREMU EVAL DONE/) do |r|
         writer.printf("?\C-ax")
+	sleep 5
       end
     end
   end
