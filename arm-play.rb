@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'coremu'
+require './coremu'
 
 COREMU.check_args
 
