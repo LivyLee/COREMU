@@ -265,10 +265,9 @@ static inline void sched_pause()
 
 static void display_thread_sched_attr(char *msg)
 {
-    int policy, prio;
+    int policy;
     struct sched_param param;
 
-    prio = getpriority(PRIO_PROCESS, 0);
     assert(!pthread_getschedparam(pthread_self(), &policy, &param));
 
     coremu_print("-- tid[%lu] %s start --",
@@ -281,7 +280,7 @@ static void display_thread_sched_attr(char *msg)
                      "SCHED_RR" :
                      (policy == SCHED_OTHER) ?
                          "SCHED_OTHER" :
-                         "???", prio);
+                         "???", getpriority(PRIO_PROCESS, 0));
 
     coremu_print("-- thr[%lu] %s end --\n",
              (unsigned long int)coremu_gettid(), msg);

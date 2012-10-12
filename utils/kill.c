@@ -33,7 +33,10 @@ int open_process(char * pid, struct process_t *p)
 	sprintf(filename,"/proc/%s/stat",pid);
 
 	int fd=open(filename,O_RDONLY);
-	read (fd, buffer, sizeof (buffer));
+	if (read(fd, buffer, sizeof (buffer)) != sizeof(buffer)) {
+        puts("read error");
+        abort();
+    };
 	close(fd);
 
 	long int dummy;

@@ -41,6 +41,7 @@ libcoremu: $(OBJDIR)/libcoremu.a
 
 $(OBJDIR)/libcoremu.a: $(LIBOBJS)
 	$(call quiet-command,rm -f $@ && $(AR) rcs $@ $^,"  AR    $(TARGET_DIR)$@")
+
 qemu:
 	@echo "---- [coremu]: build qemu ----"
 	$(MAKE) -C $(COREMUDIR)/obj/qemu

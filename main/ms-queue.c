@@ -229,7 +229,10 @@ static void *ms_allocaligned(size_t size)
     void *ptr;
 #if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
     /* use posix_memalign */
-    posix_memalign(&ptr, ALIGNMENT, size);
+    if (posix_memalign(&ptr, ALIGNMENT, size) != 0) {
+        puts("posix_memalign error");
+        abort();
+    }
 #else
     /* use obsolete memalign */
     ptr = memalign(ALIGNMENT, size);

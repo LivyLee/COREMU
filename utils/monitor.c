@@ -33,7 +33,10 @@ count_processor(){
 	int procs = -1;
 	do {
 		procs++;
-		fgets(buffer, 255, status);
+		if (fgets(buffer, 255, status) == NULL) {
+            puts("fgets error");
+            abort();
+        }
 	}while (buffer[0]=='c' && buffer[1]=='p' && buffer[2]=='u');
 	fclose(status);
 	return procs-1;
@@ -48,7 +51,10 @@ int open_process(char * pid, struct process_t *p)
     sprintf(filename,"/proc/%s/stat",pid);
 
     int fd=open(filename,O_RDONLY);
-    read (fd, buffer, sizeof (buffer));
+    if (read (fd, buffer, sizeof (buffer)) != sizeof (buffer)) {
+        puts("read error");
+        abort();
+    }
     close(fd);
 
     long int dummy;
