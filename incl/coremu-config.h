@@ -57,7 +57,7 @@
 #ifdef CONFIG_REPLAY
 
 // detect if DMA memory region is being accessed by other CPU.
-#define DMA_DETECTOR
+//#define DMA_DETECTOR
 
 //#define USE_RWLOCK
 #define CONFIG_MEM_ORDER
@@ -82,11 +82,6 @@
 //#  define ASSERT_REPLAY_TB_JMP_HASH
 //#  define ASSERT_REPLAY_TB_JMP_CACHE_MISS_CNT
 #endif
-
-/* Use log buffer  */
-//#define REPLAY_LOGBUF
-
-//#define SLOW_HOST2RAMADDR
 
 #endif /* CONFIG_REPLAY */
 

@@ -3,7 +3,7 @@
 # send user the usage
 send_user "(usage) gdb-corey path2qemu path2img"
 
-set imgdir "/home/alex/linux-img/"
+set imgdir "/home/cyf/linux-img/"
 set hda "$imgdir/debian6.img"
 set hdaqcow "$imgdir/debian6.img.gdb"
 spawn sudo qemu-img create -f qcow2 -b $hda $hdaqcow
@@ -34,11 +34,11 @@ send "set args \
     -net none \
 	-nographic \
     -k en-us \
-	-smp 4 \
+	-smp 1 \
 	-hda $hdaqcow \
     -runmode $runmode \
     -bios bin/share/qemu/seabios.bin \
-	-m 1024 \r"
+	-m 2048 \r"
 	#-serial mon:/dev/tty \
 	#-kernel $kernel \
 
