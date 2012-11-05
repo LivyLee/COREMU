@@ -58,8 +58,11 @@ module COREMU
       "-k en-us " \
       "-serial mon:/dev/tty " \
       "-nographic " \
-      "-net none " \
       "-smp #{core} " \
+      "-net none " \
+      #"-net nic,model=rtl8139 " \
+      #"-net user " \
+      #"-redir tcp:2222::5432 "
       #"-d in_asm "
     cmd << "-m #{conf[:memsize]} " if conf.has_key? :memsize
     cmd << "-hda #{conf[:hda]}.#{mode} " if conf.has_key? :hda
