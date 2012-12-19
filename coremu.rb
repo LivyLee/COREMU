@@ -152,6 +152,17 @@ class COREMU
   def self.run_benchmark(cmd, logdir, filename, ncore)
     #PTY.spawn("./script-test.sh") do |reader, writer, pid|
     PTY.spawn(cmd) do |reader, writer, pid|
+      reader.expect(/Calibrating delay loop/) do |r|
+	if r
+	  break
+	else
+	  20.times do
+	    writer.printf("\r")
+	    sleep 0.1
+	  end
+	end
+      end
+      #$expect_verbose = false
       NBENCHMARK.times do
         parse_one_application(reader, writer, ncore, logdir, filename)
       end
