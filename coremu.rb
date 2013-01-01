@@ -119,7 +119,7 @@ class COREMU
     exec arm_cmd(core, mode)
   end
 
-  BENCHMARK_NTIMES = 3
+  BENCHMARK_NTIMES = 5
   NBENCHMARK = 1
   def self.parse_one_application(reader, writer, ncore, logdir, filename)
     logfile = nil
