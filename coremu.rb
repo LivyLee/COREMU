@@ -140,7 +140,7 @@ module COREMU
     exec arm_cmd(core, mode)
   end
 
-  BENCHMARK_NTIMES = 3
+  BENCHMARK_NTIMES = 5
   NBENCHMARK = 1
   def self.parse_one_application(reader, writer, ncore, logdir, filename)
     logfile = nil
@@ -173,6 +173,19 @@ module COREMU
   def self.run_benchmark(cmd, logdir, filename, ncore)
     #PTY.spawn("./script-test.sh") do |reader, writer, pid|
     PTY.spawn(cmd) do |reader, writer, pid|
+      reader.expect(/Fast TSC calibration/) do |r|
+	10.times { writer.printf("\r") }
+	sleep 0.1
+	10.times { writer.printf("\r") }
+	sleep 0.1
+	10.times { writer.printf("\r") }
+      end
+      reader.expect(/Calibrating delay loop/) do |r|
+	10.times { writer.printf("\r") }
+	sleep 0.1
+	10.times { writer.printf("\r") }
+      end
+      #$expect_verbose = false
       NBENCHMARK.times do
         parse_one_application(reader, writer, ncore, logdir, filename)
       end
