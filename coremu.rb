@@ -6,7 +6,7 @@ class COREMU
   @@qemu = 'obj/qemu/x86_64-softmmu/qemu-system-x86_64'
   #@@qemu = '../cm-qemu/x86_64-softmmu/qemu-system-x86_64'
 
-  @@corey_dir = "~/coremu/mit-corey/obj"
+  @@corey_dir = "~/related-coremu/mit-corey/obj"
   @@corey = {
     :hda => "#{@@corey_dir}/boot/bochs.img",
     :hdb => "#{@@corey_dir}/fs/fs.fat",

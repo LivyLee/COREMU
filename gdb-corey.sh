@@ -3,7 +3,7 @@
 # send user the usage
 send_user "(usage) gdb-corey path2qemu path2img"
 
-set imgdir "/home/alex/coremu/mit-corey/obj"
+set imgdir "/home/alex/related-coremu/mit-corey/obj"
 set hda "$imgdir/boot/bochs.img"
 set hdaqcow "$imgdir/boot/bochs.img.gdb"
 set hdb "$imgdir/fs/fs.fat"

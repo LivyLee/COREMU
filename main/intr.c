@@ -167,13 +167,33 @@ void coremu_send_intr(void *e, int coreid)
     /* Call event notifier directly if sending interrupt to self.
      * Note that we still need to put the interrupt in the queue, otherwise, the
      * core will lost this interrupt. */
-    if (!coremu_hw_thr_p()) {
-        if (core == coremu_get_core_self()) {
-            event_notifier();
-            return;
-        }
+    if (!coremu_hw_thr_p() && (core == coremu_get_core_self())) {
+        event_notifier();
+    } else {
+        coremu_send_signal(core);
     }
-    coremu_send_signal(core);
+}
+
+void coremu_send_intr_immediate(void *e, int coreid)
+{
+    CMCore *core = coremu_get_core(coreid);
+    assert(core != coremu_get_core_self());
+
+    if (!coremu_init_done_p())
+        return;
+
+    coremu_put_intr(core, e);
+
+    /* In replay mode the CPU knows when to handle interrupts. */
+    if (coremu_run_mode == CM_RUNMODE_REPLAY) {
+        /*coremu_free(e);*/
+        return;
+    }
+    /* Call event notifier directly if sending interrupt to self.
+     * Note that we still need to put the interrupt in the queue, otherwise, the
+     * core will lost this interrupt. */
+    coremu_thread_setpriority(PRIO_PROCESS, core->tid, high_prio);
+    pthread_kill(core->thread, COREMU_SIGNAL);
 }
 
 void coremu_core_signal_handler(int signo, siginfo_t *info, void *context)

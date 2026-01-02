@@ -32,6 +32,8 @@ typedef struct {
     volatile char lock;
 } CMSpinLock;
 
+#define CM_SPIN_LOCK_INITIALIZER { 0 }
+
 #define SPINLOCK_ATTR static __inline __attribute__((always_inline, no_instrument_function))
 
 SPINLOCK_ATTR char __testandset(CMSpinLock *p)

@@ -58,7 +58,7 @@
  * which actually sets the tlb in tlb fill, it will set cm_is_in_tc to 0, which
  * will then only modify tlb2. */
 #ifdef CONFIG_REPLAY
-//#  define SEP_TLB
+#  define SEP_TLB
 //#  define TLBFLUSH_AS_INTERRUPT
 #  define IGNORE_MEMACC_IN_TLBFILL
 

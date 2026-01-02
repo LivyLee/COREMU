@@ -31,6 +31,7 @@ extern int coremu_run_mode;
 
 /* Send interrupt to the core. */
 void coremu_send_intr(void *e, int coreid);
+void coremu_send_intr_immediate(void *e, int coreid);
 
 /* event handler will be called by coremu_receive_intr */
 typedef void (*event_handler_t)(void *);

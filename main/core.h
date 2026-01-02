@@ -69,7 +69,7 @@ static inline CMCore *coremu_get_core(int coreid)
 /* Return the core data for the core itself. */
 static inline CMCore *coremu_get_core_self(void)
 {
-    coremu_assert_core_thr();
+    /*coremu_assert_core_thr();*/
     if (cm_core_self == NULL) {
         CMCore *core;
         for (core = cm_cores; core < cm_cores + cm_smp_cpus; core++) {
