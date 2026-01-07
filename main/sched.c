@@ -26,8 +26,6 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-/*#define DEBUG_COREMU*/
-/*#define VERBOSE_COREMU*/
 /*#define DEBUG_CM_SCHED*/
 
 #define _GNU_SOURCE
@@ -35,6 +33,8 @@
 #include "utils.h"
 #include "core.h"
 #include "coremu-sched.h"
+
+#include "coremu-debug.h"
 
 int min_prio, max_prio;
 int low_prio, avg_prio, high_prio;
@@ -80,13 +80,15 @@ static void topology_init()
     depth = topo_get_type_or_below_depth(topology, TOPO_OBJ_CORE);
     cores = topo_get_depth_nbobjs(topology, depth);
 
-    fprintf(stderr,
-            "----------------- Dump toplogy[%ud] info -----------------\n",
-            cores);
-    /* Dump the toplogy info */
-    print_children(topology, topo_get_system_obj(topology), 0);
-    fprintf(stderr,
-            "----------------------------------------------------------\n");
+    /*
+     *fprintf(stderr,
+     *        "----------------- Dump toplogy[%ud] info -----------------\n",
+     *        cores);
+     *[> Dump the toplogy info <]
+     *print_children(topology, topo_get_system_obj(topology), 0);
+     *fprintf(stderr,
+     *        "----------------------------------------------------------\n");
+     */
 }
 
 

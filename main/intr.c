@@ -26,9 +26,6 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-/*#define DEBUG_COREMU*/
-#define VERBOSE_COREMU
-
 #include <signal.h>
 #include <stdbool.h>
 #include "coremu-config.h"
@@ -38,6 +35,10 @@
 #include "coremu-intr.h"
 #include "coremu-sched.h"
 #include "core.h"
+
+/*#define DEBUG_COREMU*/
+#define VERBOSE_COREMU
+#include "coremu-debug.h"
 
 #define MAX_INTR_THRESHOLD       50
 #define SIG_HANDLE_INTERVAL      (2500000 * (coremu_get_thrs_per_core() / 8))

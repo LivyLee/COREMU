@@ -57,7 +57,6 @@
 
 #include "coremu-thread.h"
 #include "coremu-atomic.h"
-#include "coremu-debug.h"
 
 /* ******** Common utilities ******** */
 void maketimeout(struct timespec *tsp, long seconds);
